@@ -1,9 +1,9 @@
-=== Microsoft Entra SSO ===
+=== SSO for Microsoft Entra ===
 Contributors: khoipro, codetot
-Tags: sso, microsoft, entra, azure, openid-connect
+Tags: sso, microsoft, entra, azure, openid-connect, saml, single-sign-on
 Requires at least: 6.0
 Tested up to: 6.8
-Requires PHP: 7.4
+Requires PHP: 8.1
 Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html

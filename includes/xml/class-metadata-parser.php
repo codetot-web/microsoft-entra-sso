@@ -81,7 +81,7 @@ class Metadata_Parser {
 		if ( '' === $entity_id ) {
 			return new \WP_Error(
 				'metadata_missing_entity_id',
-				esc_html__( 'Federation metadata does not contain an EntityDescriptor @entityID.', 'microsoft-entra-sso' )
+				esc_html__( 'Federation metadata does not contain an EntityDescriptor @entityID.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -91,7 +91,7 @@ class Metadata_Parser {
 		if ( '' === $sso_url ) {
 			return new \WP_Error(
 				'metadata_missing_sso_url',
-				esc_html__( 'Federation metadata does not contain a SingleSignOnService with HTTP-Redirect binding.', 'microsoft-entra-sso' )
+				esc_html__( 'Federation metadata does not contain a SingleSignOnService with HTTP-Redirect binding.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -104,7 +104,7 @@ class Metadata_Parser {
 		if ( empty( $certificates ) ) {
 			return new \WP_Error(
 				'metadata_missing_certificate',
-				esc_html__( 'Federation metadata does not contain any signing certificates.', 'microsoft-entra-sso' )
+				esc_html__( 'Federation metadata does not contain any signing certificates.', 'sso-for-microsoft-entra' )
 			);
 		}
 

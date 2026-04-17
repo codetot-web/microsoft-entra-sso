@@ -69,7 +69,7 @@ class Token_Validator {
 		if ( empty( $parts['header'] ) || empty( $parts['payload'] ) ) {
 			return new \WP_Error(
 				'jwt_malformed',
-				esc_html__( 'The ID token is malformed and could not be decoded.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token is malformed and could not be decoded.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -86,7 +86,7 @@ class Token_Validator {
 		if ( ! isset( $header['alg'] ) || self::ALLOWED_ALG !== $header['alg'] ) {
 			return new \WP_Error(
 				'jwt_algorithm_rejected',
-				esc_html__( 'The ID token uses a disallowed signing algorithm. Only RS256 is accepted.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token uses a disallowed signing algorithm. Only RS256 is accepted.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -96,7 +96,7 @@ class Token_Validator {
 		if ( empty( $expected['jwks_uri'] ) ) {
 			return new \WP_Error(
 				'jwks_uri_missing',
-				esc_html__( 'The JWKS URI is required for signature verification.', 'microsoft-entra-sso' )
+				esc_html__( 'The JWKS URI is required for signature verification.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -127,7 +127,7 @@ class Token_Validator {
 		if ( ! $sig_valid ) {
 			return new \WP_Error(
 				'jwt_signature_invalid',
-				esc_html__( 'The ID token signature could not be verified.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token signature could not be verified.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -140,7 +140,7 @@ class Token_Validator {
 		if ( empty( $expected['issuer'] ) || ! isset( $payload['iss'] ) || $payload['iss'] !== $expected['issuer'] ) {
 			return new \WP_Error(
 				'jwt_issuer_mismatch',
-				esc_html__( 'The ID token issuer does not match the expected value.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token issuer does not match the expected value.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -148,7 +148,7 @@ class Token_Validator {
 		if ( empty( $expected['client_id'] ) || ! isset( $payload['aud'] ) ) {
 			return new \WP_Error(
 				'jwt_audience_missing',
-				esc_html__( 'The ID token audience claim is missing.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token audience claim is missing.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -157,7 +157,7 @@ class Token_Validator {
 		if ( ! in_array( $expected['client_id'], $aud, true ) ) {
 			return new \WP_Error(
 				'jwt_audience_mismatch',
-				esc_html__( 'The ID token audience does not include the expected client ID.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token audience does not include the expected client ID.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -168,7 +168,7 @@ class Token_Validator {
 		if ( ! isset( $payload['exp'] ) || ( $now - self::CLOCK_SKEW ) > (int) $payload['exp'] ) {
 			return new \WP_Error(
 				'jwt_expired',
-				esc_html__( 'The ID token has expired.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token has expired.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -176,7 +176,7 @@ class Token_Validator {
 		if ( isset( $payload['nbf'] ) && $now < ( (int) $payload['nbf'] - self::CLOCK_SKEW ) ) {
 			return new \WP_Error(
 				'jwt_not_yet_valid',
-				esc_html__( 'The ID token is not yet valid.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token is not yet valid.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -184,7 +184,7 @@ class Token_Validator {
 		if ( ! isset( $payload['iat'] ) ) {
 			return new \WP_Error(
 				'jwt_iat_missing',
-				esc_html__( 'The ID token is missing the issued-at (iat) claim.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token is missing the issued-at (iat) claim.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -193,7 +193,7 @@ class Token_Validator {
 		if ( ! isset( $payload['nonce'] ) || $payload['nonce'] !== $expected['nonce'] ) {
 			return new \WP_Error(
 				'jwt_nonce_mismatch',
-				esc_html__( 'The ID token nonce does not match the expected value.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token nonce does not match the expected value.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -364,7 +364,7 @@ class Token_Validator {
 		if ( is_wp_error( $response ) ) {
 			return new \WP_Error(
 				'jwks_fetch_failed',
-				esc_html__( 'Failed to fetch the JWKS document from the issuer.', 'microsoft-entra-sso' )
+				esc_html__( 'Failed to fetch the JWKS document from the issuer.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -373,7 +373,7 @@ class Token_Validator {
 		if ( 200 !== (int) $code ) {
 			return new \WP_Error(
 				'jwks_fetch_failed',
-				esc_html__( 'The JWKS endpoint returned an unexpected HTTP response.', 'microsoft-entra-sso' )
+				esc_html__( 'The JWKS endpoint returned an unexpected HTTP response.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -383,7 +383,7 @@ class Token_Validator {
 		if ( ! is_array( $jwks ) || empty( $jwks['keys'] ) ) {
 			return new \WP_Error(
 				'jwks_invalid',
-				esc_html__( 'The JWKS document is invalid or contains no keys.', 'microsoft-entra-sso' )
+				esc_html__( 'The JWKS document is invalid or contains no keys.', 'sso-for-microsoft-entra' )
 			);
 		}
 

@@ -26,7 +26,7 @@ if ( ! defined( 'MESSO_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined( 'MESSO_PLUGIN_FILE' ) ) {
-	define( 'MESSO_PLUGIN_FILE', dirname( __DIR__ ) . '/microsoft-entra-sso.php' );
+	define( 'MESSO_PLUGIN_FILE', dirname( __DIR__ ) . '/sso-for-microsoft-entra.php' );
 }
 
 if ( ! defined( 'DAY_IN_SECONDS' ) ) {

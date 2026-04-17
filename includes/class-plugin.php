@@ -156,7 +156,7 @@ class Plugin {
 	 */
 	public function load_textdomain(): void {
 		load_plugin_textdomain(
-			'microsoft-entra-sso',
+			'sso-for-microsoft-entra',
 			false,
 			dirname( plugin_basename( MESSO_PLUGIN_FILE ) ) . '/languages'
 		);

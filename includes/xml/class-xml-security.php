@@ -65,7 +65,7 @@ class XML_Security {
 		if ( strlen( $xml_string ) > self::MAX_SIZE ) {
 			return new \WP_Error(
 				'xml_too_large',
-				esc_html__( 'XML payload exceeds the 1 MB size limit.', 'microsoft-entra-sso' )
+				esc_html__( 'XML payload exceeds the 1 MB size limit.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -94,14 +94,14 @@ class XML_Security {
 		if ( ! $loaded ) {
 			$error_message = ! empty( $errors )
 				? $errors[0]->message
-				: esc_html__( 'Unknown XML parse error.', 'microsoft-entra-sso' );
+				: esc_html__( 'Unknown XML parse error.', 'sso-for-microsoft-entra' );
 
 			return new \WP_Error(
 				'xml_parse_error',
 				esc_html(
 					sprintf(
 						/* translators: %s: libxml error message */
-						__( 'XML parsing failed: %s', 'microsoft-entra-sso' ),
+						__( 'XML parsing failed: %s', 'sso-for-microsoft-entra' ),
 						trim( $error_message )
 					)
 				)
@@ -130,7 +130,7 @@ class XML_Security {
 		if ( ! $parsed || empty( $parsed['scheme'] ) || empty( $parsed['host'] ) ) {
 			return new \WP_Error(
 				'xml_invalid_url',
-				esc_html__( 'The provided URL is not valid.', 'microsoft-entra-sso' )
+				esc_html__( 'The provided URL is not valid.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -138,7 +138,7 @@ class XML_Security {
 		if ( 'https' !== strtolower( $parsed['scheme'] ) ) {
 			return new \WP_Error(
 				'xml_url_not_https',
-				esc_html__( 'Only HTTPS URLs are accepted for XML retrieval.', 'microsoft-entra-sso' )
+				esc_html__( 'Only HTTPS URLs are accepted for XML retrieval.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -156,7 +156,7 @@ class XML_Security {
 				'xml_fetch_failed',
 				sprintf(
 					/* translators: %s: underlying error message */
-					esc_html__( 'Failed to fetch XML from remote URL: %s', 'microsoft-entra-sso' ),
+					esc_html__( 'Failed to fetch XML from remote URL: %s', 'sso-for-microsoft-entra' ),
 					esc_html( $response->get_error_message() )
 				)
 			);
@@ -170,7 +170,7 @@ class XML_Security {
 				'xml_fetch_bad_status',
 				sprintf(
 					/* translators: %d: HTTP status code */
-					esc_html__( 'Remote server returned HTTP %d instead of 200.', 'microsoft-entra-sso' ),
+					esc_html__( 'Remote server returned HTTP %d instead of 200.', 'sso-for-microsoft-entra' ),
 					$status_code
 				)
 			);
@@ -185,7 +185,7 @@ class XML_Security {
 				'xml_wrong_content_type',
 				sprintf(
 					/* translators: %s: received Content-Type header value */
-					esc_html__( 'Expected an XML Content-Type but received: %s', 'microsoft-entra-sso' ),
+					esc_html__( 'Expected an XML Content-Type but received: %s', 'sso-for-microsoft-entra' ),
 					esc_html( $content_type )
 				)
 			);
@@ -196,7 +196,7 @@ class XML_Security {
 		if ( '' === $body ) {
 			return new \WP_Error(
 				'xml_empty_response',
-				esc_html__( 'Remote server returned an empty response body.', 'microsoft-entra-sso' )
+				esc_html__( 'Remote server returned an empty response body.', 'sso-for-microsoft-entra' )
 			);
 		}
 

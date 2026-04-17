@@ -142,7 +142,7 @@ class OIDC_Client {
 
 			return new \WP_Error(
 				'state_invalid',
-				esc_html__( 'The OAuth state parameter is invalid or has expired. Please try signing in again.', 'microsoft-entra-sso' )
+				esc_html__( 'The OAuth state parameter is invalid or has expired. Please try signing in again.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -156,7 +156,7 @@ class OIDC_Client {
 
 			return new \WP_Error(
 				'pkce_verifier_missing',
-				esc_html__( 'The PKCE verifier could not be found. Please try signing in again.', 'microsoft-entra-sso' )
+				esc_html__( 'The PKCE verifier could not be found. Please try signing in again.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -172,7 +172,7 @@ class OIDC_Client {
 			$error             = isset( $params['error'] ) ? sanitize_key( $params['error'] ) : 'callback_error';
 			$error_description = isset( $params['error_description'] )
 				? sanitize_text_field( $params['error_description'] )
-				: esc_html__( 'No authorization code was returned.', 'microsoft-entra-sso' );
+				: esc_html__( 'No authorization code was returned.', 'sso-for-microsoft-entra' );
 
 			return new \WP_Error( $error, esc_html( $error_description ) );
 		}
@@ -192,7 +192,7 @@ class OIDC_Client {
 
 			return new \WP_Error(
 				'id_token_missing',
-				esc_html__( 'No ID token was returned by the token endpoint.', 'microsoft-entra-sso' )
+				esc_html__( 'No ID token was returned by the token endpoint.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -224,7 +224,7 @@ class OIDC_Client {
 
 			return new \WP_Error(
 				'nonce_invalid',
-				esc_html__( 'The ID token nonce is invalid or has already been used.', 'microsoft-entra-sso' )
+				esc_html__( 'The ID token nonce is invalid or has already been used.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -285,7 +285,7 @@ class OIDC_Client {
 		if ( '' === $client_id || '' === $client_secret ) {
 			return new \WP_Error(
 				'credentials_missing',
-				esc_html__( 'The plugin client credentials are not configured.', 'microsoft-entra-sso' )
+				esc_html__( 'The plugin client credentials are not configured.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -318,7 +318,7 @@ class OIDC_Client {
 		if ( is_wp_error( $response ) ) {
 			return new \WP_Error(
 				'token_request_failed',
-				esc_html__( 'The token request to Microsoft Entra failed.', 'microsoft-entra-sso' )
+				esc_html__( 'The token request to Microsoft Entra failed.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -332,7 +332,7 @@ class OIDC_Client {
 
 			return new \WP_Error(
 				$error_code,
-				esc_html__( 'Microsoft Entra returned an error during token exchange.', 'microsoft-entra-sso' )
+				esc_html__( 'Microsoft Entra returned an error during token exchange.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -341,7 +341,7 @@ class OIDC_Client {
 		if ( ! is_array( $tokens ) ) {
 			return new \WP_Error(
 				'token_parse_failed',
-				esc_html__( 'The token endpoint response could not be parsed.', 'microsoft-entra-sso' )
+				esc_html__( 'The token endpoint response could not be parsed.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -377,7 +377,7 @@ class OIDC_Client {
 		if ( '' === $tenant_id ) {
 			return new \WP_Error(
 				'tenant_id_missing',
-				esc_html__( 'The Microsoft Entra tenant ID is not configured.', 'microsoft-entra-sso' )
+				esc_html__( 'The Microsoft Entra tenant ID is not configured.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -402,7 +402,7 @@ class OIDC_Client {
 		if ( is_wp_error( $response ) ) {
 			return new \WP_Error(
 				'discovery_fetch_failed',
-				esc_html__( 'Failed to fetch the OpenID Connect discovery document.', 'microsoft-entra-sso' )
+				esc_html__( 'Failed to fetch the OpenID Connect discovery document.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -411,7 +411,7 @@ class OIDC_Client {
 		if ( 200 !== (int) $code ) {
 			return new \WP_Error(
 				'discovery_fetch_failed',
-				esc_html__( 'The discovery endpoint returned an unexpected HTTP response.', 'microsoft-entra-sso' )
+				esc_html__( 'The discovery endpoint returned an unexpected HTTP response.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -420,7 +420,7 @@ class OIDC_Client {
 		if ( ! is_array( $body ) ) {
 			return new \WP_Error(
 				'discovery_parse_failed',
-				esc_html__( 'The discovery document could not be parsed.', 'microsoft-entra-sso' )
+				esc_html__( 'The discovery document could not be parsed.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -433,7 +433,7 @@ class OIDC_Client {
 					'discovery_incomplete',
 					sprintf(
 						/* translators: %s: missing field name */
-						esc_html__( 'The discovery document is missing the required field: %s.', 'microsoft-entra-sso' ),
+						esc_html__( 'The discovery document is missing the required field: %s.', 'sso-for-microsoft-entra' ),
 						esc_html( $field )
 					)
 				);

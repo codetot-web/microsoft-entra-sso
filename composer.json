@@ -1,6 +1,6 @@
 {
-	"name": "codetot-web/microsoft-entra-sso",
-	"description": "Microsoft Entra ID SSO for WordPress",
+	"name": "codetot-web/sso-for-microsoft-entra",
+	"description": "SSO for Microsoft Entra — Single Sign-On for WordPress",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
 	"require-dev": {

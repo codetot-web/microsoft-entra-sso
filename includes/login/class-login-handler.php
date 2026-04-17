@@ -110,8 +110,8 @@ class Login_Handler {
 		// Bail if SSO is not configured.
 		if ( ! self::is_sso_configured() ) {
 			wp_die(
-				esc_html__( 'SSO is not configured. Please contact your administrator.', 'microsoft-entra-sso' ),
-				esc_html__( 'SSO Not Configured', 'microsoft-entra-sso' ),
+				esc_html__( 'SSO is not configured. Please contact your administrator.', 'sso-for-microsoft-entra' ),
+				esc_html__( 'SSO Not Configured', 'sso-for-microsoft-entra' ),
 				array( 'response' => 503 )
 			);
 		}
@@ -120,8 +120,8 @@ class Login_Handler {
 		$ip = self::get_client_ip();
 		if ( ! Rate_Limiter::check( $ip ) ) {
 			wp_die(
-				esc_html__( 'Too many login attempts. Please try again later.', 'microsoft-entra-sso' ),
-				esc_html__( 'Rate Limited', 'microsoft-entra-sso' ),
+				esc_html__( 'Too many login attempts. Please try again later.', 'sso-for-microsoft-entra' ),
+				esc_html__( 'Rate Limited', 'sso-for-microsoft-entra' ),
 				array( 'response' => 429 )
 			);
 		}

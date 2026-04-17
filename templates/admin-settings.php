@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php do_settings_sections( \MicrosoftEntraSSO\Admin\Settings_Page::PAGE_SLUG ); ?>
 
-		<?php submit_button( __( 'Save Settings', 'microsoft-entra-sso' ) ); ?>
+		<?php submit_button( __( 'Save Settings', 'sso-for-microsoft-entra' ) ); ?>
 
 	</form>
 

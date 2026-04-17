@@ -67,7 +67,7 @@ class Admin_Notices {
 			self::render_notice(
 				'encryption_unavailable',
 				'error',
-				__( '<strong>Microsoft Entra SSO:</strong> Neither the <code>sodium</code> nor the <code>openssl</code> PHP extension is available. The client secret cannot be encrypted. Please enable at least one extension.', 'microsoft-entra-sso' ),
+				__( '<strong>Microsoft Entra SSO:</strong> Neither the <code>sodium</code> nor the <code>openssl</code> PHP extension is available. The client secret cannot be encrypted. Please enable at least one extension.', 'sso-for-microsoft-entra' ),
 				false // not dismissible — must be fixed.
 			);
 		}
@@ -76,15 +76,15 @@ class Admin_Notices {
 		$missing = array();
 
 		if ( ! $plugin->get_option( \MicrosoftEntraSSO\Plugin::OPTION_TENANT_ID ) ) {
-			$missing[] = __( 'Tenant ID', 'microsoft-entra-sso' );
+			$missing[] = __( 'Tenant ID', 'sso-for-microsoft-entra' );
 		}
 
 		if ( ! $plugin->get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID ) ) {
-			$missing[] = __( 'Client ID', 'microsoft-entra-sso' );
+			$missing[] = __( 'Client ID', 'sso-for-microsoft-entra' );
 		}
 
 		if ( ! $plugin->get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_SECRET ) ) {
-			$missing[] = __( 'Client Secret', 'microsoft-entra-sso' );
+			$missing[] = __( 'Client Secret', 'sso-for-microsoft-entra' );
 		}
 
 		if ( ! empty( $missing ) ) {
@@ -99,7 +99,7 @@ class Admin_Notices {
 					'warning',
 					sprintf(
 						/* translators: 1: comma-separated field names, 2: settings page URL */
-						__( '<strong>Microsoft Entra SSO:</strong> The following required fields are not configured: %1$s. <a href="%2$s">Configure settings &rarr;</a>', 'microsoft-entra-sso' ),
+						__( '<strong>Microsoft Entra SSO:</strong> The following required fields are not configured: %1$s. <a href="%2$s">Configure settings &rarr;</a>', 'sso-for-microsoft-entra' ),
 						$field_list,
 						esc_url( $settings_url )
 					),

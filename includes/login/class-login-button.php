@@ -57,7 +57,7 @@ class Login_Button {
 
 		$button_text  = (string) $plugin->get_option(
 			'microsoft_entra_sso_button_text',
-			__( 'Sign in with Microsoft', 'microsoft-entra-sso' )
+			__( 'Sign in with Microsoft', 'sso-for-microsoft-entra' )
 		);
 		$button_style = (string) $plugin->get_option( 'microsoft_entra_sso_button_style', 'default' );
 		$allow_local  = (bool) $plugin->get_option( 'microsoft_entra_sso_allow_local_login', false );

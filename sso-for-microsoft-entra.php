@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name:       Microsoft Entra SSO
- * Plugin URI:        https://github.com/codetot-web/microsoft-entra-sso
+ * Plugin Name:       SSO for Microsoft Entra
+ * Plugin URI:        https://github.com/codetot-web/sso-for-microsoft-entra
  * Description:       Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD). Supports OpenID Connect with PKCE and SAML 2.0.
  * Version:           1.3.0
  * Requires at least: 6.0
@@ -10,7 +10,7 @@
  * Author URI:        https://codetot.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       microsoft-entra-sso
+ * Text Domain:       sso-for-microsoft-entra
  * Domain Path:       /languages
  *
  * @package MicrosoftEntraSSO
@@ -60,7 +60,7 @@ if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 				'<div class="notice notice-error"><p>%s</p></div>',
 				esc_html__(
 					'Microsoft Entra SSO requires PHP 7.4 or higher. Please upgrade PHP to activate this plugin.',
-					'microsoft-entra-sso'
+					'sso-for-microsoft-entra'
 				)
 			);
 		}
@@ -82,7 +82,7 @@ if ( version_compare( get_bloginfo( 'version' ), '6.0', '<' ) ) {
 				'<div class="notice notice-error"><p>%s</p></div>',
 				esc_html__(
 					'Microsoft Entra SSO requires WordPress 6.0 or higher. Please upgrade WordPress to activate this plugin.',
-					'microsoft-entra-sso'
+					'sso-for-microsoft-entra'
 				)
 			);
 		}

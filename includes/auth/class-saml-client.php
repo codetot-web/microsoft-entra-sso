@@ -97,7 +97,7 @@ class SAML_Client {
 		if ( false === $deflated ) {
 			return new \WP_Error(
 				'saml_deflate_failed',
-				esc_html__( 'Failed to deflate SAML AuthnRequest.', 'microsoft-entra-sso' )
+				esc_html__( 'Failed to deflate SAML AuthnRequest.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -136,7 +136,7 @@ class SAML_Client {
 		if ( '' === $saml_response ) {
 			return new \WP_Error(
 				'saml_empty_response',
-				esc_html__( 'SAML response is empty.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML response is empty.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -155,7 +155,7 @@ class SAML_Client {
 			}
 			return new \WP_Error(
 				'saml_parse_failed',
-				esc_html__( 'Failed to parse SAML response.', 'microsoft-entra-sso' )
+				esc_html__( 'Failed to parse SAML response.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -165,7 +165,7 @@ class SAML_Client {
 		if ( $status_code && 'urn:oasis:names:tc:SAML:2.0:status:Success' !== $status_code->getValue() ) {
 			return new \WP_Error(
 				'saml_status_error',
-				esc_html__( 'SAML response returned a non-success status.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML response returned a non-success status.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -174,7 +174,7 @@ class SAML_Client {
 		if ( ! $assertion ) {
 			return new \WP_Error(
 				'saml_no_assertion',
-				esc_html__( 'No SAML Assertion found in the response.', 'microsoft-entra-sso' )
+				esc_html__( 'No SAML Assertion found in the response.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -188,7 +188,7 @@ class SAML_Client {
 		if ( empty( $certificates ) ) {
 			return new \WP_Error(
 				'saml_no_certificate',
-				esc_html__( 'No signing certificate is configured for SAML verification.', 'microsoft-entra-sso' )
+				esc_html__( 'No signing certificate is configured for SAML verification.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -226,7 +226,7 @@ class SAML_Client {
 			}
 			return new \WP_Error(
 				'saml_invalid_signature',
-				esc_html__( 'SAML response signature verification failed.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML response signature verification failed.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -251,7 +251,7 @@ class SAML_Client {
 		if ( ! $name_id || '' === (string) $name_id->getValue() ) {
 			return new \WP_Error(
 				'saml_missing_name_id',
-				esc_html__( 'SAML assertion does not contain a NameID.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML assertion does not contain a NameID.', 'sso-for-microsoft-entra' )
 			);
 		}
 		$claims['sub'] = (string) $name_id->getValue();
@@ -452,7 +452,7 @@ class SAML_Client {
 			// we require it for security.
 			return new \WP_Error(
 				'saml_missing_conditions',
-				esc_html__( 'SAML assertion is missing a Conditions element.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML assertion is missing a Conditions element.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -469,7 +469,7 @@ class SAML_Client {
 			if ( false !== $not_before && $now < ( $not_before - self::CLOCK_SKEW ) ) {
 				return new \WP_Error(
 					'saml_assertion_not_yet_valid',
-					esc_html__( 'SAML assertion is not yet valid (NotBefore).', 'microsoft-entra-sso' )
+					esc_html__( 'SAML assertion is not yet valid (NotBefore).', 'sso-for-microsoft-entra' )
 				);
 			}
 		}
@@ -485,7 +485,7 @@ class SAML_Client {
 				// replay attacks using captured SAML responses.
 				return new \WP_Error(
 					'saml_assertion_expired',
-					esc_html__( 'SAML assertion has expired (NotOnOrAfter).', 'microsoft-entra-sso' )
+					esc_html__( 'SAML assertion has expired (NotOnOrAfter).', 'sso-for-microsoft-entra' )
 				);
 			}
 		}
@@ -498,7 +498,7 @@ class SAML_Client {
 		if ( ! $audience_nodes || 0 === $audience_nodes->length ) {
 			return new \WP_Error(
 				'saml_missing_audience',
-				esc_html__( 'SAML assertion is missing an AudienceRestriction element.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML assertion is missing an AudienceRestriction element.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -526,7 +526,7 @@ class SAML_Client {
 			if ( ! $audience_match ) {
 				return new \WP_Error(
 					'saml_audience_mismatch',
-					esc_html__( 'SAML assertion audience does not match this service provider.', 'microsoft-entra-sso' )
+					esc_html__( 'SAML assertion audience does not match this service provider.', 'sso-for-microsoft-entra' )
 				);
 			}
 		}
@@ -570,7 +570,7 @@ class SAML_Client {
 		if ( ! $name_id_nodes || 0 === $name_id_nodes->length ) {
 			return new \WP_Error(
 				'saml_missing_name_id',
-				esc_html__( 'SAML assertion does not contain a NameID.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML assertion does not contain a NameID.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -630,7 +630,7 @@ class SAML_Client {
 		if ( empty( $claims['sub'] ) ) {
 			return new \WP_Error(
 				'saml_empty_name_id',
-				esc_html__( 'SAML NameID is empty.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML NameID is empty.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -679,7 +679,7 @@ class SAML_Client {
 		if ( '' === $sso_url ) {
 			return new \WP_Error(
 				'saml_no_sso_url',
-				esc_html__( 'SAML SSO URL is not configured.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML SSO URL is not configured.', 'sso-for-microsoft-entra' )
 			);
 		}
 
@@ -688,7 +688,7 @@ class SAML_Client {
 		if ( '' === $certificate ) {
 			return new \WP_Error(
 				'saml_no_certificate',
-				esc_html__( 'SAML signing certificate is not configured.', 'microsoft-entra-sso' )
+				esc_html__( 'SAML signing certificate is not configured.', 'sso-for-microsoft-entra' )
 			);
 		}
 

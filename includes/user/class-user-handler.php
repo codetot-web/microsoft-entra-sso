@@ -70,7 +70,7 @@ class User_Handler {
 					'messo_user_not_found',
 					esc_html__(
 						'No WordPress account was found for your Microsoft identity and automatic user creation is disabled. Please contact your site administrator.',
-						'microsoft-entra-sso'
+						'sso-for-microsoft-entra'
 					)
 				);
 			}
@@ -104,7 +104,7 @@ class User_Handler {
 				'messo_no_email',
 				esc_html__(
 					'The Microsoft identity does not include a valid email address. Cannot create a WordPress account.',
-					'microsoft-entra-sso'
+					'sso-for-microsoft-entra'
 				)
 			);
 		}

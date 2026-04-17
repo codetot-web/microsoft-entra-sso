@@ -19,7 +19,7 @@ $valid_styles  = array( 'default', 'dark', 'light' );
 $style_class   = in_array( $button_style, $valid_styles, true ) ? $button_style : 'default';
 $btn_css_class = ( 'dark' === $style_class ) ? 'messo-btn messo-btn-dark' : 'messo-btn messo-btn-light';
 ?>
-<div class="messo-divider"><?php esc_html_e( 'Or', 'microsoft-entra-sso' ); ?></div>
+<div class="messo-divider"><?php esc_html_e( 'Or', 'sso-for-microsoft-entra' ); ?></div>
 
 <div class="messo-btn-wrap">
 	<a href="<?php echo esc_url( $sso_url ); // URL already validated by Login_Button::render(). ?>"
@@ -61,7 +61,7 @@ $btn_css_class = ( 'dark' === $style_class ) ? 'messo-btn messo-btn-dark' : 'mes
 <?php if ( $allow_local ) : ?>
 <div class="messo-local-login">
 	<a href="<?php echo esc_url( $local_url ); // URL already validated by Login_Button::render(). ?>">
-		<?php esc_html_e( 'Use local login instead', 'microsoft-entra-sso' ); ?>
+		<?php esc_html_e( 'Use local login instead', 'sso-for-microsoft-entra' ); ?>
 	</a>
 </div>
 <?php endif; ?>

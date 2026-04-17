@@ -262,6 +262,40 @@
 	}
 
 	/* -----------------------------------------------------------------------
+		5. Protocol-dependent field visibility
+		----------------------------------------------------------------------- */
+	function initProtocolToggle() {
+		var radios = document.querySelectorAll( 'input[name="sfme_auth_protocol"]' );
+		if ( ! radios.length ) {
+			return;
+		}
+
+		var secretRow = document.getElementById( 'sfme_client_secret' );
+		if ( secretRow ) {
+			secretRow = secretRow.closest( 'tr' );
+		}
+
+		function toggle() {
+			var selected = document.querySelector( 'input[name="sfme_auth_protocol"]:checked' );
+			if ( ! selected || ! secretRow ) {
+				return;
+			}
+			if ( 'saml' === selected.value ) {
+				secretRow.style.display = 'none';
+			} else {
+				secretRow.style.display = '';
+			}
+		}
+
+		radios.forEach( function ( radio ) {
+			radio.addEventListener( 'change', toggle );
+		} );
+
+		// Run on load.
+		toggle();
+	}
+
+	/* -----------------------------------------------------------------------
 		Boot
 		----------------------------------------------------------------------- */
 	document.addEventListener(
@@ -271,6 +305,7 @@
 			initRoleMapping();
 			initSecretToggle();
 			initDismissibleNotices();
+			initProtocolToggle();
 		}
 	);
 

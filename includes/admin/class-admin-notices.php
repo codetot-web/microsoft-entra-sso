@@ -83,7 +83,9 @@ class Admin_Notices {
 			$missing[] = __( 'Client ID', 'sso-for-microsoft-entra' );
 		}
 
-		if ( ! $plugin->get_option( \SFME\Plugin::OPTION_CLIENT_SECRET ) ) {
+		// Client secret is only required for OIDC — SAML uses certificates from metadata.
+		$protocol = (string) $plugin->get_option( \SFME\Plugin::OPTION_AUTH_PROTOCOL, 'oidc' );
+		if ( 'oidc' === $protocol && ! $plugin->get_option( \SFME\Plugin::OPTION_CLIENT_SECRET ) ) {
 			$missing[] = __( 'Client Secret', 'sso-for-microsoft-entra' );
 		}
 
@@ -91,7 +93,7 @@ class Admin_Notices {
 			$notice_id = 'missing_required_fields';
 
 			if ( ! self::is_dismissed( $notice_id ) ) {
-				$settings_url = admin_url( 'options-general.php?page=microsoft-entra-sso' );
+				$settings_url = admin_url( 'options-general.php?page=sso-for-microsoft-entra' );
 				$field_list   = implode( ', ', array_map( 'esc_html', $missing ) );
 
 				self::render_notice(
@@ -99,7 +101,7 @@ class Admin_Notices {
 					'warning',
 					sprintf(
 						/* translators: 1: comma-separated field names, 2: settings page URL */
-						__( '<strong>Microsoft Entra SSO:</strong> The following required fields are not configured: %1$s. <a href="%2$s">Configure settings &rarr;</a>', 'sso-for-microsoft-entra' ),
+						__( '<strong>SSO for Microsoft Entra:</strong> The following required fields are not configured: %1$s. <a href="%2$s">Configure settings &rarr;</a>', 'sso-for-microsoft-entra' ),
 						$field_list,
 						esc_url( $settings_url )
 					),

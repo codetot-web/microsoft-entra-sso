@@ -4,7 +4,7 @@ Tags: sso, microsoft, entra, azure, openid-connect, saml, single-sign-on
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -110,10 +110,16 @@ if ( strpos( $_SERVER["REQUEST_URI"], "/sso/saml-acs" ) !== false ) {
 
 == Changelog ==
 
+= 2.0.2 =
+* **Fixed:** Skip Client Secret requirement when SAML protocol is selected.
+* **Fixed:** Hide Client Secret field in settings when SAML 2.0 is active.
+* **Fixed:** Settings URL slug and plugin name in admin notices.
+
 = 2.0.1 =
 * **Fixed:** Update "Tested up to" to WordPress 6.9.
-* **Fixed:** Include composer.json in distribution (required by Plugin Check when vendor/ exists).
-* **Fixed:** Full readme.txt rewrite with 2.0.0 changelog, upgrade notices, and NinjaFirewall FAQ.
+* **Fixed:** Include composer.json in distribution (Plugin Check compliance).
+* **Added:** README.md for GitHub with badges, support links.
+* **Added:** Support section in readme.txt with GitHub Issues link.
 
 = 2.0.0 =
 * **Breaking:** Renamed plugin from "Microsoft Entra SSO" to "SSO for Microsoft Entra" for trademark compliance.
@@ -150,6 +156,9 @@ if ( strpos( $_SERVER["REQUEST_URI"], "/sso/saml-acs" ) !== false ) {
 * OpenID Connect with PKCE, SAML 2.0, user provisioning, role mapping, rate limiting.
 
 == Upgrade Notices ==
+
+= 2.0.2 =
+Client Secret field is now hidden for SAML setups and no longer triggers a missing-field warning.
 
 = 2.0.1 =
 Fix WordPress 6.9 compatibility header and Plugin Check compliance.

@@ -72,12 +72,12 @@
 						if ( data.success ) {
 								setStatus( status, data.data && data.data.message ? data.data.message : strings.import_done, false );
 								// Auto-populate connection fields extracted from the metadata URL.
-								if ( data.data ) {
-									fillFieldIfEmpty( 'sfme_tenant_id', data.data.tenant_id );
-									fillFieldIfEmpty( 'sfme_client_id', data.data.client_id );
-									// Switch protocol radio to SAML since metadata was imported.
-									selectRadio( 'sfme_auth_protocol', 'saml' );
-								}
+							if ( data.data ) {
+								fillFieldIfEmpty( 'sfme_tenant_id', data.data.tenant_id );
+								fillFieldIfEmpty( 'sfme_client_id', data.data.client_id );
+								// Switch protocol radio to SAML since metadata was imported.
+								selectRadio( 'sfme_auth_protocol', 'saml' );
+							}
 						} else {
 							var msg = data.data && data.data.message ? data.data.message : strings.import_error;
 							setStatus( status, msg, true );
@@ -110,11 +110,14 @@
 		}
 		input.value = value;
 		// Brief highlight to draw attention to the auto-filled field.
-		input.style.transition = 'background-color 0.3s';
+		input.style.transition      = 'background-color 0.3s';
 		input.style.backgroundColor = '#e7f5e9';
-		setTimeout( function () {
-			input.style.backgroundColor = '';
-		}, 2000 );
+		setTimeout(
+			function () {
+				input.style.backgroundColor = '';
+			},
+			2000
+		);
 	}
 
 	/**

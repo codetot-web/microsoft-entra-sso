@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Microsoft Entra SSO">
-	<description>PHP_CodeSniffer ruleset for the Microsoft Entra SSO WordPress plugin.</description>
+<ruleset name="SSO for Microsoft Entra">
+	<description>PHP_CodeSniffer ruleset for the SSO for Microsoft Entra WordPress plugin.</description>
 
 	<!-- Scan all PHP files in the plugin root and includes/. -->
 	<file>.</file>
@@ -15,7 +15,7 @@
 		<!-- Enforce the correct text domain for all translation functions. -->
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="microsoft-entra-sso"/>
+				<element value="sso-for-microsoft-entra"/>
 			</property>
 		</properties>
 	</rule>
@@ -31,7 +31,7 @@
 	</rule>
 
 	<!-- PHP version compatibility: target PHP 7.4 and above. -->
-	<config name="testVersion" value="7.4-"/>
+	<config name="testVersion" value="8.1-"/>
 	<rule ref="PHPCompatibilityWP"/>
 
 	<!-- Ensure all files use Unix line endings. -->

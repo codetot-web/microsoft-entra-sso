@@ -1,19 +1,19 @@
 <?php return array(
     'root' => array(
-        'name' => 'codetot-web/microsoft-entra-sso',
+        'name' => 'codetot-web/sso-for-microsoft-entra',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'f20d2545b33ab7ef2668f2cefd17732b6a20b95b',
+        'reference' => '40f45954497a0c4411f6323a6b98e94bfbb27e71',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
-        'codetot-web/microsoft-entra-sso' => array(
+        'codetot-web/sso-for-microsoft-entra' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'f20d2545b33ab7ef2668f2cefd17732b6a20b95b',
+            'reference' => '40f45954497a0c4411f6323a6b98e94bfbb27e71',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

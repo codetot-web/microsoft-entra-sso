@@ -110,19 +110,19 @@ register_activation_hook(
 	function () {
 		// Migrate options from old plugin key prefix (microsoft_entra_sso_*) to new (sfme_*).
 		$migrate_keys = array(
-			'microsoft_entra_sso_tenant_id'        => 'sfme_tenant_id',
-			'microsoft_entra_sso_client_id'        => 'sfme_client_id',
-			'microsoft_entra_sso_client_secret'    => 'sfme_client_secret',
-			'microsoft_entra_sso_auth_protocol'    => 'sfme_auth_protocol',
-			'microsoft_entra_sso_auto_redirect'    => 'sfme_auto_redirect',
-			'microsoft_entra_sso_role_map'         => 'sfme_role_map',
-			'microsoft_entra_sso_default_role'     => 'sfme_default_role',
+			'microsoft_entra_sso_tenant_id'         => 'sfme_tenant_id',
+			'microsoft_entra_sso_client_id'         => 'sfme_client_id',
+			'microsoft_entra_sso_client_secret'     => 'sfme_client_secret',
+			'microsoft_entra_sso_auth_protocol'     => 'sfme_auth_protocol',
+			'microsoft_entra_sso_auto_redirect'     => 'sfme_auto_redirect',
+			'microsoft_entra_sso_role_map'          => 'sfme_role_map',
+			'microsoft_entra_sso_default_role'      => 'sfme_default_role',
 			'microsoft_entra_sso_user_provisioning' => 'sfme_user_provisioning',
-			'microsoft_entra_sso_saml_metadata'    => 'sfme_saml_metadata',
-			'microsoft_entra_sso_rate_limit_max'   => 'sfme_rate_limit_max',
+			'microsoft_entra_sso_saml_metadata'     => 'sfme_saml_metadata',
+			'microsoft_entra_sso_rate_limit_max'    => 'sfme_rate_limit_max',
 			'microsoft_entra_sso_rate_limit_window' => 'sfme_rate_limit_window',
-			'microsoft_entra_sso_button_text'      => 'sfme_button_text',
-			'microsoft_entra_sso_button_style'     => 'sfme_button_style',
+			'microsoft_entra_sso_button_text'       => 'sfme_button_text',
+			'microsoft_entra_sso_button_style'      => 'sfme_button_style',
 			'microsoft_entra_sso_allow_local_login' => 'sfme_allow_local_login',
 		);
 

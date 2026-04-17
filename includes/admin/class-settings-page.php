@@ -89,29 +89,37 @@ class Settings_Page {
 			return;
 		}
 
-		$screen->add_help_tab( array(
-			'id'      => 'sfme_help_quick_start',
-			'title'   => __( 'Quick Start', 'sso-for-microsoft-entra' ),
-			'content' => self::get_help_quick_start(),
-		) );
+		$screen->add_help_tab(
+			array(
+				'id'      => 'sfme_help_quick_start',
+				'title'   => __( 'Quick Start', 'sso-for-microsoft-entra' ),
+				'content' => self::get_help_quick_start(),
+			)
+		);
 
-		$screen->add_help_tab( array(
-			'id'      => 'sfme_help_azure_setup',
-			'title'   => __( 'Azure Setup', 'sso-for-microsoft-entra' ),
-			'content' => self::get_help_azure_setup(),
-		) );
+		$screen->add_help_tab(
+			array(
+				'id'      => 'sfme_help_azure_setup',
+				'title'   => __( 'Azure Setup', 'sso-for-microsoft-entra' ),
+				'content' => self::get_help_azure_setup(),
+			)
+		);
 
-		$screen->add_help_tab( array(
-			'id'      => 'sfme_help_saml',
-			'title'   => __( 'SAML Setup', 'sso-for-microsoft-entra' ),
-			'content' => self::get_help_saml_setup(),
-		) );
+		$screen->add_help_tab(
+			array(
+				'id'      => 'sfme_help_saml',
+				'title'   => __( 'SAML Setup', 'sso-for-microsoft-entra' ),
+				'content' => self::get_help_saml_setup(),
+			)
+		);
 
-		$screen->add_help_tab( array(
-			'id'      => 'sfme_help_troubleshooting',
-			'title'   => __( 'Troubleshooting', 'sso-for-microsoft-entra' ),
-			'content' => self::get_help_troubleshooting(),
-		) );
+		$screen->add_help_tab(
+			array(
+				'id'      => 'sfme_help_troubleshooting',
+				'title'   => __( 'Troubleshooting', 'sso-for-microsoft-entra' ),
+				'content' => self::get_help_troubleshooting(),
+			)
+		);
 
 		$screen->set_help_sidebar(
 			'<p><strong>' . esc_html__( 'Resources', 'sso-for-microsoft-entra' ) . '</strong></p>'

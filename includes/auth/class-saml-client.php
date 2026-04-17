@@ -257,7 +257,7 @@ class SAML_Client {
 		$claims['sub'] = (string) $name_id->getValue();
 
 		// Map SAML attributes to OIDC claim names.
-		$attribute_map = array(
+		$attribute_map    = array(
 			'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress' => 'email',
 			'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'    => 'given_name',
 			'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'      => 'family_name',
@@ -435,7 +435,7 @@ class SAML_Client {
 	 *  - AudienceRestriction: our entity ID must be listed.
 	 *
 	 * @param \DOMElement $assertion Verified SAML Assertion element.
-	 * @param string     $entity_id Our SP entity ID (home_url()).
+	 * @param string      $entity_id Our SP entity ID (home_url()).
 	 *
 	 * @return true|\WP_Error True when conditions are satisfied, WP_Error otherwise.
 	 */

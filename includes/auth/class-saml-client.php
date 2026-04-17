@@ -140,35 +140,51 @@ class SAML_Client {
 			);
 		}
 
-		// Step 1: base64-decode.
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Required for SAML protocol
-		$xml_string = base64_decode( $saml_response, true );
-
-		if ( false === $xml_string || '' === $xml_string ) {
+		// Use LightSaml to parse the SAML response (handles base64, XML, bindings).
+		try {
+			$request         = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+			$message_context = new \LightSaml\Context\Profile\MessageContext();
+			$binding_factory = new \LightSaml\Binding\BindingFactory();
+			$binding         = $binding_factory->getBindingByRequest( $request );
+			$binding->receive( $request, $message_context );
+			$response = $message_context->asResponse();
+		} catch ( \Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'MicrosoftEntraSSO SAML parse error: ' . $e->getMessage() );
+			}
 			return new \WP_Error(
-				'saml_base64_decode_failed',
-				esc_html__( 'Failed to base64-decode SAML response.', 'microsoft-entra-sso' )
+				'saml_parse_failed',
+				esc_html__( 'Failed to parse SAML response.', 'microsoft-entra-sso' )
 			);
 		}
 
-		// Step 2: parse XML (XXE-hardened).
-		$doc = XML_Security::safe_load_xml( $xml_string );
-
-		if ( is_wp_error( $doc ) ) {
-			return $doc;
+		// Check response status.
+		$status      = $response->getStatus();
+		$status_code = $status ? $status->getStatusCode() : null;
+		if ( $status_code && 'urn:oasis:names:tc:SAML:2.0:status:Success' !== $status_code->getValue() ) {
+			return new \WP_Error(
+				'saml_status_error',
+				esc_html__( 'SAML response returned a non-success status.', 'microsoft-entra-sso' )
+			);
 		}
 
-		// Step 3: verify XML digital signature.
-		$config = self::get_saml_config();
+		// Get the assertion.
+		$assertion = $response->getFirstAssertion();
+		if ( ! $assertion ) {
+			return new \WP_Error(
+				'saml_no_assertion',
+				esc_html__( 'No SAML Assertion found in the response.', 'microsoft-entra-sso' )
+			);
+		}
 
+		// Validate signature using stored certificate.
+		$config = self::get_saml_config();
 		if ( is_wp_error( $config ) ) {
 			return $config;
 		}
 
-		// Use the first certificate for primary verification.
-		// Multiple certificates support key rotation — try each in order.
 		$certificates = $config['certificates'];
-
 		if ( empty( $certificates ) ) {
 			return new \WP_Error(
 				'saml_no_certificate',
@@ -176,87 +192,102 @@ class SAML_Client {
 			);
 		}
 
+		// Verify signature on either the assertion or the response.
 		$signature_valid = false;
+		$signature       = $assertion->getSignature() ?? $response->getSignature();
 
-		foreach ( $certificates as $cert ) {
-			if ( self::verify_xml_signature( $doc, $cert ) ) {
-				$signature_valid = true;
-				break;
+		if ( $signature ) {
+			foreach ( $certificates as $cert ) {
+				try {
+					$cert_clean = str_replace( array( "\n", "\r", ' ' ), '', $cert );
+					$pem        = "-----BEGIN CERTIFICATE-----\n"
+						. chunk_split( $cert_clean, 64, "\n" )
+						. "-----END CERTIFICATE-----\n";
+
+					$x509 = new \LightSaml\Credential\X509Certificate();
+					$x509->loadPem( $pem );
+					$key = \LightSaml\Credential\KeyHelper::createPublicKey( $x509 );
+
+					if ( $signature->validate( $key ) ) {
+						$signature_valid = true;
+						break;
+					}
+				} catch ( \Exception $e ) {
+					// Try next certificate.
+					continue;
+				}
 			}
 		}
 
 		if ( ! $signature_valid ) {
-			// Security: reject responses with invalid or missing signatures to
-			// prevent a forged assertion from creating fraudulent user sessions.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'MicrosoftEntraSSO SAML signature verification failed (LightSaml)' );
+			}
 			return new \WP_Error(
 				'saml_invalid_signature',
 				esc_html__( 'SAML response signature verification failed.', 'microsoft-entra-sso' )
 			);
 		}
 
-		// Security (C-1): locate the signed Assertion element and bind all
-		// downstream operations to it. Using a fresh //saml:Assertion XPath
-		// would be vulnerable to XML Signature Wrapping (XSW) — an attacker
-		// could inject a forged Assertion before the signed one.
-		$xpath = new \DOMXPath( $doc );
-		$xpath->registerNamespace( 'saml', self::NS_SAML_ASSERTION );
-		$xpath->registerNamespace( 'ds', self::NS_XML_DSIG );
+		// Extract claims from the assertion using LightSaml objects.
+		return self::extract_claims_from_lightsaml( $assertion );
+	}
 
-		// Find the Assertion that contains (or is referenced by) the signature.
-		// The signed Reference URI points to the element whose digest was verified.
-		$sig_ref = $xpath->query( '//ds:Signature/ds:SignedInfo/ds:Reference' );
-		$assertion = null;
+	/**
+	 * Extract normalised claims from a LightSaml Assertion object.
+	 *
+	 * Maps SAML attributes to OIDC-compatible claim names so User_Handler
+	 * works identically for both protocols.
+	 *
+	 * @param \LightSaml\Model\Assertion\Assertion $assertion LightSaml assertion.
+	 * @return array|\WP_Error Normalised claims array or WP_Error.
+	 */
+	private static function extract_claims_from_lightsaml( \LightSaml\Model\Assertion\Assertion $assertion ) {
+		$claims = array();
 
-		if ( $sig_ref && $sig_ref->length > 0 ) {
-			$uri = $sig_ref->item( 0 )->getAttribute( 'URI' );
+		// NameID → sub.
+		$name_id = $assertion->getSubject() ? $assertion->getSubject()->getNameID() : null;
+		if ( ! $name_id || '' === (string) $name_id->getValue() ) {
+			return new \WP_Error(
+				'saml_missing_name_id',
+				esc_html__( 'SAML assertion does not contain a NameID.', 'microsoft-entra-sso' )
+			);
+		}
+		$claims['sub'] = (string) $name_id->getValue();
 
-			if ( '' !== $uri && '#' === $uri[0] ) {
-				$ref_id = substr( $uri, 1 );
+		// Map SAML attributes to OIDC claim names.
+		$attribute_map = array(
+			'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress' => 'email',
+			'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'    => 'given_name',
+			'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'      => 'family_name',
+			'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'         => 'preferred_username',
+		);
+		$groups_attribute = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/groups';
 
-				// Use the same strict ID validation as verify_reference_digest().
-				if ( preg_match( '/^[a-zA-Z0-9_.-]+$/', $ref_id ) ) {
-					$ref_elements = $xpath->query( '//saml:Assertion[@ID="' . $ref_id . '"]' );
+		$attr_statement = $assertion->getFirstAttributeStatement();
+		if ( $attr_statement ) {
+			foreach ( $attr_statement->getAllAttributes() as $attribute ) {
+				$attr_name = $attribute->getName();
 
-					if ( $ref_elements && $ref_elements->length > 0 ) {
-						$assertion = $ref_elements->item( 0 );
+				if ( isset( $attribute_map[ $attr_name ] ) ) {
+					$value = $attribute->getFirstAttributeValue();
+					if ( null !== $value ) {
+						$claims[ $attribute_map[ $attr_name ] ] = (string) $value;
+					}
+					continue;
+				}
+
+				if ( $groups_attribute === $attr_name ) {
+					$groups = $attribute->getAllAttributeValues();
+					if ( ! empty( $groups ) ) {
+						$claims['groups'] = $groups;
 					}
 				}
 			}
 		}
 
-		// Fallback: if the signature covers the entire Response, find the
-		// Assertion within the signed Response element.
-		if ( null === $assertion ) {
-			$assertions = $xpath->query( '//saml:Assertion' );
-
-			if ( ! $assertions || 0 === $assertions->length ) {
-				return new \WP_Error(
-					'saml_no_assertion',
-					esc_html__( 'No SAML Assertion found in the signed response.', 'microsoft-entra-sso' )
-				);
-			}
-
-			// Only accept a single Assertion — multiple Assertions in a signed
-			// Response could still enable XSW if we pick the wrong one.
-			if ( $assertions->length > 1 ) {
-				return new \WP_Error(
-					'saml_multiple_assertions',
-					esc_html__( 'Multiple SAML Assertions found. Only single-assertion responses are supported.', 'microsoft-entra-sso' )
-				);
-			}
-
-			$assertion = $assertions->item( 0 );
-		}
-
-		// Step 4: validate assertion conditions on the VERIFIED assertion.
-		$conditions_result = self::validate_conditions( $assertion, $config['entity_id'] );
-
-		if ( is_wp_error( $conditions_result ) ) {
-			return $conditions_result;
-		}
-
-		// Step 5: extract claims from the VERIFIED assertion only.
-		return self::extract_claims( $assertion );
+		return $claims;
 	}
 
 	// -------------------------------------------------------------------------
@@ -309,229 +340,86 @@ class SAML_Client {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Verify the XML digital signature on a SAML document.
+	 * Verify the XML digital signature on a SAML document using xmlseclibs.
 	 *
-	 * Verification steps per the XML-DSig specification:
-	 *  1. Locate the ds:Signature element.
-	 *  2. Determine the referenced element (the element whose digest was signed).
-	 *  3. Canonicalise the referenced element using Exclusive C14N.
-	 *  4. Compute SHA-256 digest and compare to the stored DigestValue.
-	 *  5. Canonicalise the ds:SignedInfo element.
-	 *  6. Verify the SignatureValue against the canonicalised SignedInfo
-	 *     using the trusted certificate stored in plugin settings.
+	 * Delegates all canonicalization, digest, and signature verification to
+	 * the robrichards/xmlseclibs library — the industry standard for XML-DSig
+	 * in PHP, used by most SAML implementations.
 	 *
 	 * Security: we verify against our stored certificate ONLY. We do NOT
-	 * extract or trust any certificate included in the KeyInfo element of the
-	 * response — that would allow an attacker who forges the KeyInfo to sign
-	 * with their own certificate and bypass verification entirely.
+	 * trust any certificate embedded in the response's KeyInfo element.
 	 *
 	 * @param \DOMDocument $doc         Parsed SAML response document.
-	 * @param string       $certificate PEM-formatted X.509 certificate (without headers).
+	 * @param string       $certificate Base64-encoded X.509 certificate (without PEM headers).
 	 *
 	 * @return bool True when the signature is valid.
 	 */
 	private static function verify_xml_signature( \DOMDocument $doc, string $certificate ): bool {
-		$xpath = new \DOMXPath( $doc );
-		$xpath->registerNamespace( 'ds', self::NS_XML_DSIG );
+		// Register all ID attributes so xmlseclibs can resolve URI references.
+		// Azure SAML responses use the "ID" attribute on Response and Assertion
+		// elements, but DOMDocument doesn't treat them as XML IDs by default.
+		$xpath_ids = new \DOMXPath( $doc );
+		foreach ( $xpath_ids->query( '//*[@ID]' ) as $element ) {
+			$element->setIdAttribute( 'ID', true );
+		}
 
-		// Locate the Signature element; absent signature is treated as invalid.
-		$sig_nodes = $xpath->query( '//ds:Signature' );
+		$xml_sec = new \RobRichards\XMLSecLibs\XMLSecurityDSig();
 
-		if ( ! $sig_nodes || 0 === $sig_nodes->length ) {
+		// Locate the Signature element.
+		$sig_node = $xml_sec->locateSignature( $doc );
+		if ( null === $sig_node ) {
 			return false;
 		}
 
-		// @var \DOMElement $signature -- phpcs:ignore Squiz.PHP.CommentedOutCode.Found
-		$signature = $sig_nodes->item( 0 );
-
-		// ── Step 1: extract SignatureValue ────────────────────────────────── //
-		$sig_value_nodes = $xpath->query( 'ds:SignatureValue', $signature );
-
-		if ( ! $sig_value_nodes || 0 === $sig_value_nodes->length ) {
+		// Canonicalize the SignedInfo element (xmlseclibs handles transforms).
+		try {
+			$xml_sec->canonicalizeSignedInfo();
+		} catch ( \Exception $e ) {
 			return false;
 		}
 
-		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHP DOM API property
-		$sig_value_b64 = trim( $sig_value_nodes->item( 0 )->textContent );
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Required for SAML protocol
-		$sig_value = base64_decode( str_replace( array( "\n", "\r", ' ' ), '', $sig_value_b64 ), true );
-
-		if ( false === $sig_value ) {
+		// Validate the reference digests (enveloped-signature, exc-c14n, etc.).
+		try {
+			$xml_sec->validateReference();
+		} catch ( \Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'MicrosoftEntraSSO SAML reference validation error: ' . $e->getMessage() );
+			}
 			return false;
 		}
 
-		// ── Step 2: canonicalise ds:SignedInfo ────────────────────────────── //
-		$signed_info_nodes = $xpath->query( 'ds:SignedInfo', $signature );
-
-		if ( ! $signed_info_nodes || 0 === $signed_info_nodes->length ) {
-			return false;
-		}
-
-		// @var \DOMElement $signed_info -- phpcs:ignore Squiz.PHP.CommentedOutCode.Found
-		$signed_info = $signed_info_nodes->item( 0 );
-
-		// Security: use Exclusive C14N (#exc-c14n) per XML-DSig best practices.
-		// Exclusive C14N prevents namespace injection attacks that can occur
-		// with inclusive canonicalisation.
-		$signed_info_c14n = $signed_info->C14N( true );
-
-		if ( false === $signed_info_c14n || '' === $signed_info_c14n ) {
-			return false;
-		}
-
-		// ── Step 3: build PEM-formatted public key ────────────────────────── //
-		// Strip any whitespace / header lines if already PEM-wrapped.
+		// Build the PEM certificate from the stored base64 string.
 		$cert_clean = str_replace( array( '-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----', "\n", "\r", ' ' ), '', $certificate );
 		$pem        = "-----BEGIN CERTIFICATE-----\n"
 			. chunk_split( $cert_clean, 64, "\n" )
 			. "-----END CERTIFICATE-----\n";
 
-		$public_key = openssl_pkey_get_public( $pem );
+		// Verify the cryptographic signature using our trusted certificate.
+		$key = new \RobRichards\XMLSecLibs\XMLSecurityKey(
+			\RobRichards\XMLSecLibs\XMLSecurityKey::RSA_SHA256,
+			array( 'type' => 'public' )
+		);
 
-		if ( false === $public_key ) {
+		// Detect the actual algorithm used in the signature.
+		try {
+			\RobRichards\XMLSecLibs\XMLSecEnc::staticLocateKeyInfo( $key, $sig_node );
+		} catch ( \Exception $e ) {
+			// Key info extraction failed — continue with SHA256 default.
+		}
+
+		$key->loadKey( $pem );
+
+		try {
+			// verifySignature returns 1 on success, throws on failure.
+			return 1 === $xml_sec->verify( $key );
+		} catch ( \Exception $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'MicrosoftEntraSSO SAML signature verify error: ' . $e->getMessage() );
+			}
 			return false;
 		}
-
-		// ── Step 4: determine digest algorithm from SignatureMethod ────────── //
-		// Default to SHA-256; we also accept SHA-1 for compatibility with older
-		// Entra configurations (though SHA-256 is strongly preferred).
-		$sig_method_nodes = $xpath->query( 'ds:SignedInfo/ds:SignatureMethod', $signature );
-		$sig_algo         = OPENSSL_ALGO_SHA256;
-
-		if ( $sig_method_nodes && $sig_method_nodes->length > 0 ) {
-			$algorithm = $sig_method_nodes->item( 0 )->getAttribute( 'Algorithm' );
-
-			if ( false !== strpos( $algorithm, 'rsa-sha1' ) ) {
-				$sig_algo = OPENSSL_ALGO_SHA1;
-			} elseif ( false !== strpos( $algorithm, 'rsa-sha384' ) ) {
-				$sig_algo = OPENSSL_ALGO_SHA384;
-			} elseif ( false !== strpos( $algorithm, 'rsa-sha512' ) ) {
-				$sig_algo = OPENSSL_ALGO_SHA512;
-			}
-		}
-
-		// ── Step 5: verify the signature ─────────────────────────────────── //
-		// openssl_verify() returns 1 on success, 0 on failure, -1 on error.
-		$verify_result = openssl_verify( $signed_info_c14n, $sig_value, $public_key, $sig_algo );
-
-		// Free the key resource (PHP 8+ handles this automatically via objects,
-		// but explicit free is required for PHP 7.4 compatibility).
-		if ( PHP_VERSION_ID < 80000 && is_resource( $public_key ) ) {
-			// phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated -- Required for PHP 7.4 compatibility; deprecated in PHP 8.0
-			openssl_free_key( $public_key );
-		}
-
-		if ( 1 !== $verify_result ) {
-			return false;
-		}
-
-		// ── Step 6: verify the Reference digest ───────────────────────────── //
-		return self::verify_reference_digest( $doc, $xpath, $signature );
-	}
-
-	/**
-	 * Verify the digest of the element referenced inside ds:SignedInfo.
-	 *
-	 * Without digest verification an attacker could substitute the Assertion
-	 * body while keeping the signature valid (signature wrapping attack).
-	 *
-	 * @param \DOMDocument $doc       Full SAML document.
-	 * @param \DOMXPath    $xpath     XPath instance with namespace prefixes registered.
-	 * @param \DOMElement  $signature The ds:Signature element.
-	 *
-	 * @return bool True when all referenced digests match.
-	 */
-	private static function verify_reference_digest(
-		\DOMDocument $doc,
-		\DOMXPath $xpath,
-		\DOMElement $signature
-	): bool {
-		$ref_nodes = $xpath->query( 'ds:SignedInfo/ds:Reference', $signature );
-
-		if ( ! $ref_nodes || 0 === $ref_nodes->length ) {
-			return false;
-		}
-
-		foreach ( $ref_nodes as $ref_node ) {
-			// @var \DOMElement $ref_node -- phpcs:ignore Squiz.PHP.CommentedOutCode.Found
-			$uri = $ref_node->getAttribute( 'URI' );
-
-			// URI can be empty (reference to whole document) or '#ID'.
-			if ( '' === $uri ) {
-				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHP DOM API property
-				$referenced_element = $doc->documentElement;
-			} elseif ( '#' === substr( $uri, 0, 1 ) ) {
-				$id = substr( $uri, 1 );
-
-				// Security (C-2): validate ID with strict regex before XPath use.
-				// esc_attr() is an HTML encoder, not XPath-safe — XPath injection
-				// is possible via crafted URI values.
-				if ( ! preg_match( '/^[a-zA-Z0-9_.-]+$/', $id ) ) {
-					return false;
-				}
-
-				$referenced_element = $doc->getElementById( $id );
-
-				// Fallback: XPath search by common ID attributes.
-				if ( null === $referenced_element ) {
-					$search = $xpath->query( '//*[@ID="' . $id . '" or @Id="' . $id . '"]' );
-
-					if ( $search && $search->length > 0 ) {
-						$referenced_element = $search->item( 0 );
-					}
-				}
-			} else {
-				// External references are not supported (security boundary).
-				return false;
-			}
-
-			if ( null === $referenced_element ) {
-				return false;
-			}
-
-			// Canonicalise the referenced element with exclusive C14N.
-			$c14n = $referenced_element->C14N( true );
-
-			if ( false === $c14n ) {
-				return false;
-			}
-
-			// Determine digest algorithm.
-			$digest_method_nodes = $xpath->query( 'ds:DigestMethod', $ref_node );
-			$digest_algo         = 'sha256';
-
-			if ( $digest_method_nodes && $digest_method_nodes->length > 0 ) {
-				$algorithm = $digest_method_nodes->item( 0 )->getAttribute( 'Algorithm' );
-
-				if ( false !== strpos( $algorithm, 'sha1' ) ) {
-					$digest_algo = 'sha1';
-				} elseif ( false !== strpos( $algorithm, 'sha384' ) ) {
-					$digest_algo = 'sha384';
-				} elseif ( false !== strpos( $algorithm, 'sha512' ) ) {
-					$digest_algo = 'sha512';
-				}
-			}
-
-			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Required for SAML protocol
-			$computed_digest = base64_encode( hash( $digest_algo, $c14n, true ) );
-
-			$digest_value_nodes = $xpath->query( 'ds:DigestValue', $ref_node );
-
-			if ( ! $digest_value_nodes || 0 === $digest_value_nodes->length ) {
-				return false;
-			}
-
-			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHP DOM API property
-			$stored_digest = trim( $digest_value_nodes->item( 0 )->textContent );
-
-			// Security: use hash_equals() for constant-time comparison to
-			// prevent timing attacks that could leak digest value information.
-			if ( ! hash_equals( $stored_digest, $computed_digest ) ) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	// -------------------------------------------------------------------------

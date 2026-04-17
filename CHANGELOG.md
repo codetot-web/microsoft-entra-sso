@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.3.0 (2026-04-17)
+
+### Added
+
+- Contextual Help tabs on settings page — Quick Start, Azure Setup, SAML Setup, and Troubleshooting guides accessible via the Help button
+
+### Fixed
+
+- Replace manual XML signature verification with LightSaml library for reliable SAML response validation
+- Load Composer vendor autoloader for third-party dependencies (LightSaml, xmlseclibs)
+- NinjaFirewall compatibility: document `.htninja` whitelist requirement for SAML ACS endpoint
+
+### Changed
+
+- Require PHP 8.1+ (LightSaml dependency)
+- SAML response parsing now uses LightSaml (same library as other WordPress SAML plugins)
+
 ## 1.2.0 (2026-04-17)
 
 ### Added

@@ -64,13 +64,136 @@ class Settings_Page {
 	 * @return void
 	 */
 	public static function add_menu_page(): void {
-		add_options_page(
+		$hook = add_options_page(
 			__( 'Microsoft Entra SSO', 'microsoft-entra-sso' ),
 			__( 'Entra SSO', 'microsoft-entra-sso' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( self::class, 'render_page' )
 		);
+
+		// Add contextual help tabs to the settings page.
+		if ( $hook ) {
+			add_action( 'load-' . $hook, array( self::class, 'add_help_tabs' ) );
+		}
+	}
+
+	/**
+	 * Register contextual help tabs on the settings page.
+	 *
+	 * @return void
+	 */
+	public static function add_help_tabs(): void {
+		$screen = get_current_screen();
+		if ( ! $screen ) {
+			return;
+		}
+
+		$screen->add_help_tab( array(
+			'id'      => 'messo_help_quick_start',
+			'title'   => __( 'Quick Start', 'microsoft-entra-sso' ),
+			'content' => self::get_help_quick_start(),
+		) );
+
+		$screen->add_help_tab( array(
+			'id'      => 'messo_help_azure_setup',
+			'title'   => __( 'Azure Setup', 'microsoft-entra-sso' ),
+			'content' => self::get_help_azure_setup(),
+		) );
+
+		$screen->add_help_tab( array(
+			'id'      => 'messo_help_saml',
+			'title'   => __( 'SAML Setup', 'microsoft-entra-sso' ),
+			'content' => self::get_help_saml_setup(),
+		) );
+
+		$screen->add_help_tab( array(
+			'id'      => 'messo_help_troubleshooting',
+			'title'   => __( 'Troubleshooting', 'microsoft-entra-sso' ),
+			'content' => self::get_help_troubleshooting(),
+		) );
+
+		$screen->set_help_sidebar(
+			'<p><strong>' . esc_html__( 'Resources', 'microsoft-entra-sso' ) . '</strong></p>'
+			. '<p><a href="https://portal.azure.com" target="_blank">' . esc_html__( 'Azure Portal', 'microsoft-entra-sso' ) . '</a></p>'
+			. '<p><a href="https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/add-application-portal-setup-sso" target="_blank">' . esc_html__( 'Microsoft Docs', 'microsoft-entra-sso' ) . '</a></p>'
+		);
+	}
+
+	/**
+	 * Quick Start help tab content.
+	 *
+	 * @return string
+	 */
+	private static function get_help_quick_start(): string {
+		return '<h3>' . esc_html__( 'Quick Start (SAML — Recommended)', 'microsoft-entra-sso' ) . '</h3>'
+			. '<ol>'
+			. '<li>' . esc_html__( 'In Azure Portal, go to Enterprise Applications → your app → Single sign-on → SAML.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Set Reply URL (ACS) to:', 'microsoft-entra-sso' ) . ' <code>' . esc_url( home_url( '/sso/saml-acs' ) ) . '</code></li>'
+			. '<li>' . esc_html__( 'Copy the App Federation Metadata URL from the SAML Certificates section.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Paste it into the Metadata URL field below and click Import Metadata.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Tenant ID, Client ID, and protocol are auto-filled. Click Save Changes.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Test in an incognito window — click "Sign in with Microsoft" on the login page.', 'microsoft-entra-sso' ) . '</li>'
+			. '</ol>';
+	}
+
+	/**
+	 * Azure Setup help tab content.
+	 *
+	 * @return string
+	 */
+	private static function get_help_azure_setup(): string {
+		return '<h3>' . esc_html__( 'Azure App Registration', 'microsoft-entra-sso' ) . '</h3>'
+			. '<ol>'
+			. '<li>' . esc_html__( 'Sign in to the Azure Portal → Microsoft Entra ID → App registrations → + New registration.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Name: "WordPress SSO", Account type: Single tenant, Redirect URI: Web →', 'microsoft-entra-sso' ) . ' <code>' . esc_url( home_url( '/sso/callback' ) ) . '</code></li>'
+			. '<li>' . esc_html__( 'Copy the Application (client) ID and Directory (tenant) ID from the overview page.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Go to Certificates & secrets → + New client secret → copy the Value immediately.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Go to API permissions → + Add permission → Microsoft Graph → Delegated: openid, profile, email.', 'microsoft-entra-sso' ) . '</li>'
+			. '</ol>'
+			. '<p><strong>' . esc_html__( 'For OIDC:', 'microsoft-entra-sso' ) . '</strong> '
+			. esc_html__( 'Enter Tenant ID, Client ID, and Client Secret in the Connection section below.', 'microsoft-entra-sso' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'For SAML:', 'microsoft-entra-sso' ) . '</strong> '
+			. esc_html__( 'Use the Quick Start tab instead — just paste the metadata URL.', 'microsoft-entra-sso' ) . '</p>';
+	}
+
+	/**
+	 * SAML Setup help tab content.
+	 *
+	 * @return string
+	 */
+	private static function get_help_saml_setup(): string {
+		return '<h3>' . esc_html__( 'SAML 2.0 Configuration', 'microsoft-entra-sso' ) . '</h3>'
+			. '<ol>'
+			. '<li>' . esc_html__( 'In Azure Portal → Enterprise applications → your app → Single sign-on → SAML.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Set Basic SAML Configuration:', 'microsoft-entra-sso' ) . '<br>'
+			. '&nbsp;&nbsp;' . esc_html__( 'Identifier (Entity ID):', 'microsoft-entra-sso' ) . ' <code>' . esc_html( \MicrosoftEntraSSO\Plugin::get_instance()->get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID, 'your-client-id' ) ) . '</code><br>'
+			. '&nbsp;&nbsp;' . esc_html__( 'Reply URL (ACS):', 'microsoft-entra-sso' ) . ' <code>' . esc_url( home_url( '/sso/saml-acs' ) ) . '</code></li>'
+			. '<li>' . esc_html__( 'Under SAML Certificates, copy the App Federation Metadata URL.', 'microsoft-entra-sso' ) . '</li>'
+			. '<li>' . esc_html__( 'Paste it in the Metadata URL field below and click Import Metadata.', 'microsoft-entra-sso' ) . '</li>'
+			. '</ol>'
+			. '<p><strong>' . esc_html__( 'NinjaFirewall users:', 'microsoft-entra-sso' ) . '</strong> '
+			. esc_html__( 'Create a .htninja file in your document root to whitelist /sso/saml-acs — otherwise the firewall blocks the SAML POST data.', 'microsoft-entra-sso' ) . '</p>';
+	}
+
+	/**
+	 * Troubleshooting help tab content.
+	 *
+	 * @return string
+	 */
+	private static function get_help_troubleshooting(): string {
+		return '<h3>' . esc_html__( 'Common Issues', 'microsoft-entra-sso' ) . '</h3>'
+			. '<dl>'
+			. '<dt><strong>AADSTS50011</strong> — ' . esc_html__( 'Redirect URI mismatch', 'microsoft-entra-sso' ) . '</dt>'
+			. '<dd>' . esc_html__( 'The redirect URI in Azure must exactly match the Redirect URI shown in Connection settings (including protocol and trailing slash).', 'microsoft-entra-sso' ) . '</dd>'
+			. '<dt><strong>AADSTS700016</strong> �� ' . esc_html__( 'Application not found', 'microsoft-entra-sso' ) . '</dt>'
+			. '<dd>' . esc_html__( 'The Tenant ID or Client ID is incorrect. Re-copy from Azure Portal → App registrations → Overview.', 'microsoft-entra-sso' ) . '</dd>'
+			. '<dt><strong>' . esc_html__( 'Rate limited', 'microsoft-entra-sso' ) . '</strong></dt>'
+			. '<dd>' . esc_html__( 'Wait for the rate limit window to expire, or adjust Max Attempts / Window in the Rate Limiting section below.', 'microsoft-entra-sso' ) . '</dd>'
+			. '<dt><strong>' . esc_html__( 'NinjaFirewall blocks SAML callback', 'microsoft-entra-sso' ) . '</strong></dt>'
+			. '<dd>' . esc_html__( 'Create .htninja in document root with a rule to return "ALLOW" for /sso/saml-acs requests.', 'microsoft-entra-sso' ) . '</dd>'
+			. '</dl>'
+			. '<p>' . esc_html__( 'Enable WP_DEBUG_LOG in wp-config.php and check wp-content/debug.log for detailed error messages.', 'microsoft-entra-sso' ) . '</p>';
 	}
 
 	// -------------------------------------------------------------------------

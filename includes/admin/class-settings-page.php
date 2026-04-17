@@ -479,12 +479,8 @@ class Settings_Page {
 				break;
 
 			case 'readonly':
-				// L1: use 'entra_callback' to match the action registered in OIDC_Client::get_redirect_uri().
-				// The previous value 'messo-callback' was stale and would cause Azure app registration mismatches.
-				$redirect_uri = add_query_arg(
-					array( 'action' => 'entra_callback' ),
-					wp_login_url()
-				);
+				// Uses /sso/callback front-end endpoint instead of wp-login.php.
+				$redirect_uri = home_url( '/sso/callback' );
 				printf(
 					'<input type="text" id="%1$s" name="%1$s" value="%2$s" class="regular-text" readonly />',
 					esc_attr( $id ),
@@ -719,13 +715,11 @@ class Settings_Page {
 			);
 		}
 
-		// Security (H2): store the DOM-serialised XML directly. The XML was already
-		// validated and parsed through XML_Security::safe_load_xml_from_url() above,
-		// so DOMDocument::saveXML() output is structurally clean. Applying
-		// sanitize_textarea_field() would mangle tags and entities, breaking SAML parsing.
+		// Security (H-2): pass through sanitize_saml_metadata() so the AJAX path
+		// uses the same validation as the Settings API form submission.
 		update_option(
 			\MicrosoftEntraSSO\Plugin::OPTION_SAML_METADATA,
-			$dom->saveXML()
+			self::sanitize_saml_metadata( $dom->saveXML() )
 		);
 
 		wp_send_json_success(

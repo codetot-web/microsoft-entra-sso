@@ -25,11 +25,11 @@ $wpdb->query(
 
 // -------------------------------------------------------------------------
 // 2. Delete all user meta stored by this plugin
-// All meta keys are prefixed with "_microsoft_entra_sso_".
+// User_Meta keys are prefixed with "_messo_" (not "_microsoft_entra_sso_").
 // -------------------------------------------------------------------------
 $wpdb->query(
 	"DELETE FROM {$wpdb->usermeta}
-	 WHERE meta_key LIKE '\_microsoft\_entra\_sso\_%'"
+	 WHERE meta_key LIKE '\_messo\_%'"
 );
 
 // -------------------------------------------------------------------------

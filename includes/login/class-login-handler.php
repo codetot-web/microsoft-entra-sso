@@ -324,7 +324,7 @@ class Login_Handler {
 			$post_logout_redirect = add_query_arg(
 				'loggedout',
 				'true',
-				wp_login_url()
+				home_url()
 			);
 
 			$logout_url = add_query_arg(
@@ -337,8 +337,8 @@ class Login_Handler {
 			exit;
 		}
 
-		// No Entra logout configured — redirect to WordPress login page.
-		wp_safe_redirect( add_query_arg( 'loggedout', 'true', wp_login_url() ) );
+		// No Entra logout configured — redirect to home page.
+		wp_safe_redirect( add_query_arg( 'loggedout', 'true', home_url() ) );
 		exit;
 	}
 
@@ -389,7 +389,7 @@ class Login_Handler {
 		}
 
 		// Build the SSO initiation URL.
-		$sso_url = add_query_arg( 'action', 'entra_login', wp_login_url() );
+		$sso_url = home_url( '/sso/login' );
 
 		wp_redirect( $sso_url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 		exit;
@@ -468,7 +468,7 @@ class Login_Handler {
 	 * @return void
 	 */
 	private static function redirect_with_error( string $code ): void {
-		$url = add_query_arg( 'sso_error', rawurlencode( $code ), wp_login_url() );
+		$url = add_query_arg( 'sso_error', rawurlencode( $code ), home_url() );
 		wp_safe_redirect( $url );
 		exit;
 	}
@@ -482,11 +482,12 @@ class Login_Handler {
 	 * @return string Validated, safe redirect URL.
 	 */
 	private static function get_redirect_url(): string {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Standard WordPress redirect_to parameter; no nonce needed for this read-only URL parameter
-		$redirect_to = isset( $_REQUEST['redirect_to'] )
-			? wp_unslash( $_REQUEST['redirect_to'] )
+		// Security (M-2): use $_GET only — $_REQUEST merges cookies which could
+		// be abused for session fixation in edge cases.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Standard WordPress redirect_to parameter
+		$redirect_to = isset( $_GET['redirect_to'] )
+			? wp_unslash( $_GET['redirect_to'] )
 			: '';
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if ( '' !== $redirect_to ) {
 			// Security: wp_validate_redirect() only permits same-host URLs.

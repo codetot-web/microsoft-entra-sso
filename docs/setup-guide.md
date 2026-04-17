@@ -26,7 +26,7 @@ This guide walks through configuring the Microsoft Entra SSO WordPress plugin en
      - Choose "Multitenant" only if you need to allow logins from multiple Microsoft 365 organizations.
    - **Redirect URI**:
      - Platform: **Web**
-     - URI: `https://yoursite.com/wp-login.php?action=entra_callback`
+     - URI: `https://yoursite.com/sso/callback`
      - Replace `yoursite.com` with your actual WordPress site domain.
 6. Click **Register**.
 
@@ -167,7 +167,7 @@ Use SAML only if your organization specifically requires it. OIDC (Part 2) is si
 4. Select **SAML**.
 5. Under **Basic SAML Configuration**, set:
    - **Identifier (Entity ID)**: `https://yoursite.com` (your WordPress site URL)
-   - **Reply URL (ACS URL)**: `https://yoursite.com/wp-login.php?action=entra_saml_acs`
+   - **Reply URL (ACS URL)**: `https://yoursite.com/sso/saml-acs`
 6. Click **Save**.
 7. Scroll down to **SAML Certificates** and find the **App Federation Metadata URL**. Copy this URL.
 

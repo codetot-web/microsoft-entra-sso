@@ -194,15 +194,69 @@ class SAML_Client {
 			);
 		}
 
-		// Step 4: validate assertion conditions.
-		$conditions_result = self::validate_conditions( $doc, $config['entity_id'] );
+		// Security (C-1): locate the signed Assertion element and bind all
+		// downstream operations to it. Using a fresh //saml:Assertion XPath
+		// would be vulnerable to XML Signature Wrapping (XSW) — an attacker
+		// could inject a forged Assertion before the signed one.
+		$xpath = new \DOMXPath( $doc );
+		$xpath->registerNamespace( 'saml', self::NS_SAML_ASSERTION );
+		$xpath->registerNamespace( 'ds', self::NS_XML_DSIG );
+
+		// Find the Assertion that contains (or is referenced by) the signature.
+		// The signed Reference URI points to the element whose digest was verified.
+		$sig_ref = $xpath->query( '//ds:Signature/ds:SignedInfo/ds:Reference' );
+		$assertion = null;
+
+		if ( $sig_ref && $sig_ref->length > 0 ) {
+			$uri = $sig_ref->item( 0 )->getAttribute( 'URI' );
+
+			if ( '' !== $uri && '#' === $uri[0] ) {
+				$ref_id = substr( $uri, 1 );
+
+				// Use the same strict ID validation as verify_reference_digest().
+				if ( preg_match( '/^[a-zA-Z0-9_.-]+$/', $ref_id ) ) {
+					$ref_elements = $xpath->query( '//saml:Assertion[@ID="' . $ref_id . '"]' );
+
+					if ( $ref_elements && $ref_elements->length > 0 ) {
+						$assertion = $ref_elements->item( 0 );
+					}
+				}
+			}
+		}
+
+		// Fallback: if the signature covers the entire Response, find the
+		// Assertion within the signed Response element.
+		if ( null === $assertion ) {
+			$assertions = $xpath->query( '//saml:Assertion' );
+
+			if ( ! $assertions || 0 === $assertions->length ) {
+				return new \WP_Error(
+					'saml_no_assertion',
+					esc_html__( 'No SAML Assertion found in the signed response.', 'microsoft-entra-sso' )
+				);
+			}
+
+			// Only accept a single Assertion — multiple Assertions in a signed
+			// Response could still enable XSW if we pick the wrong one.
+			if ( $assertions->length > 1 ) {
+				return new \WP_Error(
+					'saml_multiple_assertions',
+					esc_html__( 'Multiple SAML Assertions found. Only single-assertion responses are supported.', 'microsoft-entra-sso' )
+				);
+			}
+
+			$assertion = $assertions->item( 0 );
+		}
+
+		// Step 4: validate assertion conditions on the VERIFIED assertion.
+		$conditions_result = self::validate_conditions( $assertion, $config['entity_id'] );
 
 		if ( is_wp_error( $conditions_result ) ) {
 			return $conditions_result;
 		}
 
-		// Step 5: extract and normalise claims.
-		return self::extract_claims( $doc );
+		// Step 5: extract claims from the VERIFIED assertion only.
+		return self::extract_claims( $assertion );
 	}
 
 	// -------------------------------------------------------------------------
@@ -219,7 +273,7 @@ class SAML_Client {
 	private static function build_authn_request( array $config ): string {
 		$id            = '_' . bin2hex( random_bytes( 16 ) );
 		$issue_instant = gmdate( 'Y-m-d\TH:i:s\Z' );
-		$acs_url       = esc_url( add_query_arg( 'action', 'entra_saml_acs', wp_login_url() ) );
+		$acs_url       = esc_url( home_url( '/sso/saml-acs' ) );
 		$issuer        = esc_url( home_url() );
 
 		// Minimal AuthnRequest per SAML 2.0 core spec §3.4.
@@ -399,12 +453,20 @@ class SAML_Client {
 				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHP DOM API property
 				$referenced_element = $doc->documentElement;
 			} elseif ( '#' === substr( $uri, 0, 1 ) ) {
-				$id                 = substr( $uri, 1 );
+				$id = substr( $uri, 1 );
+
+				// Security (C-2): validate ID with strict regex before XPath use.
+				// esc_attr() is an HTML encoder, not XPath-safe — XPath injection
+				// is possible via crafted URI values.
+				if ( ! preg_match( '/^[a-zA-Z0-9_.-]+$/', $id ) ) {
+					return false;
+				}
+
 				$referenced_element = $doc->getElementById( $id );
 
 				// Fallback: XPath search by common ID attributes.
 				if ( null === $referenced_element ) {
-					$search = $xpath->query( '//*[@ID="' . esc_attr( $id ) . '" or @Id="' . esc_attr( $id ) . '"]' );
+					$search = $xpath->query( '//*[@ID="' . $id . '" or @Id="' . $id . '"]' );
 
 					if ( $search && $search->length > 0 ) {
 						$referenced_element = $search->item( 0 );
@@ -476,16 +538,18 @@ class SAML_Client {
 	 *  - NotOnOrAfter: assertion must not be used at or after this time.
 	 *  - AudienceRestriction: our entity ID must be listed.
 	 *
-	 * @param \DOMDocument $doc       Parsed SAML document.
-	 * @param string       $entity_id Our SP entity ID (home_url()).
+	 * @param \DOMElement $assertion Verified SAML Assertion element.
+	 * @param string     $entity_id Our SP entity ID (home_url()).
 	 *
 	 * @return true|\WP_Error True when conditions are satisfied, WP_Error otherwise.
 	 */
-	private static function validate_conditions( \DOMDocument $doc, string $entity_id ) {
-		$xpath = new \DOMXPath( $doc );
+	private static function validate_conditions( \DOMElement $assertion, string $entity_id ) {
+		// Security (C-1): query relative to the verified assertion element,
+		// not the entire document, to prevent XSW attacks.
+		$xpath = new \DOMXPath( $assertion->ownerDocument );
 		$xpath->registerNamespace( 'saml', self::NS_SAML_ASSERTION );
 
-		$conditions_nodes = $xpath->query( '//saml:Conditions' );
+		$conditions_nodes = $xpath->query( 'saml:Conditions', $assertion );
 
 		if ( ! $conditions_nodes || 0 === $conditions_nodes->length ) {
 			// A missing Conditions element is treated as valid per spec, but
@@ -533,7 +597,16 @@ class SAML_Client {
 		// ── AudienceRestriction ───────────────────────────────────────────── //
 		$audience_nodes = $xpath->query( 'saml:AudienceRestriction/saml:Audience', $conditions );
 
-		if ( $audience_nodes && $audience_nodes->length > 0 ) {
+		// Security (M-3): require AudienceRestriction — silently skipping it
+		// when absent would accept assertions issued for any SP.
+		if ( ! $audience_nodes || 0 === $audience_nodes->length ) {
+			return new \WP_Error(
+				'saml_missing_audience',
+				esc_html__( 'SAML assertion is missing an AudienceRestriction element.', 'microsoft-entra-sso' )
+			);
+		}
+
+		if ( $audience_nodes->length > 0 ) {
 			$audience_match = false;
 
 			foreach ( $audience_nodes as $audience_node ) {
@@ -577,18 +650,20 @@ class SAML_Client {
 	 *  .../claims/name                                            → preferred_username
 	 *  http://schemas.microsoft.com/ws/2008/06/identity/claims/groups → groups
 	 *
-	 * @param \DOMDocument $doc Parsed and signature-verified SAML document.
+	 * @param \DOMElement $assertion Verified SAML Assertion element.
 	 *
 	 * @return array|\WP_Error Normalised claims array or WP_Error.
 	 */
-	private static function extract_claims( \DOMDocument $doc ) {
-		$xpath = new \DOMXPath( $doc );
+	private static function extract_claims( \DOMElement $assertion ) {
+		// Security (C-1): query relative to the verified assertion element,
+		// not the entire document, to prevent XSW attacks.
+		$xpath = new \DOMXPath( $assertion->ownerDocument );
 		$xpath->registerNamespace( 'saml', self::NS_SAML_ASSERTION );
 
 		$claims = array();
 
 		// ── Subject / NameID → sub ────────────────────────────────────────── //
-		$name_id_nodes = $xpath->query( '//saml:Assertion/saml:Subject/saml:NameID' );
+		$name_id_nodes = $xpath->query( 'saml:Subject/saml:NameID', $assertion );
 
 		if ( ! $name_id_nodes || 0 === $name_id_nodes->length ) {
 			return new \WP_Error(
@@ -611,7 +686,7 @@ class SAML_Client {
 		// Groups are collected as a multi-value array.
 		$groups_attribute = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/groups';
 
-		$attr_nodes = $xpath->query( '//saml:Assertion/saml:AttributeStatement/saml:Attribute' );
+		$attr_nodes = $xpath->query( 'saml:AttributeStatement/saml:Attribute', $assertion );
 
 		if ( $attr_nodes ) {
 			foreach ( $attr_nodes as $attr_node ) {

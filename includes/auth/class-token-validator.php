@@ -110,6 +110,20 @@ class Token_Validator {
 		// payload claim. Do not read claims before this check passes.
 		$sig_valid = self::verify_signature( $jwt, $jwks );
 
+		// Security (H-4): if verification fails, the JWKS may be stale from
+		// a key rotation. Delete the cache, re-fetch once, and retry.
+		// This also limits the window during which a revoked key is accepted.
+		if ( ! $sig_valid ) {
+			$transient_key = 'messo_jwks_' . md5( $expected['jwks_uri'] );
+			delete_transient( $transient_key );
+
+			$jwks = self::get_jwks( $expected['jwks_uri'] );
+
+			if ( ! is_wp_error( $jwks ) ) {
+				$sig_valid = self::verify_signature( $jwt, $jwks );
+			}
+		}
+
 		if ( ! $sig_valid ) {
 			return new \WP_Error(
 				'jwt_signature_invalid',

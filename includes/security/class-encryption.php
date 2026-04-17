@@ -119,13 +119,20 @@ class Encryption {
 	/**
 	 * Derive a 32-byte encryption key from WordPress's auth salt.
 	 *
-	 * Using wp_salt() ties the key to this specific WordPress installation.
-	 * SHA-256 is applied solely for length normalisation (raw binary output).
+	 * Security (H-5): uses HKDF with a plugin-specific context string for
+	 * domain separation. This ensures the derived key is unique to this plugin
+	 * even if the same salt is used for other purposes elsewhere.
 	 *
 	 * @return string 32-byte binary key.
 	 */
 	private static function get_key(): string {
-		return hash( 'sha256', wp_salt( 'auth' ), true );
+		// hash_hkdf() available since PHP 7.1.2 (plugin requires 7.4+).
+		return hash_hkdf(
+			'sha256',
+			wp_salt( 'auth' ),
+			32,
+			'microsoft-entra-sso-client-secret'
+		);
 	}
 
 	/**

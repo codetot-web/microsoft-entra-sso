@@ -122,17 +122,11 @@ class OIDC_Client {
 	 * @return array|\WP_Error User identity claims on success, WP_Error on failure.
 	 */
 	public static function handle_callback( array $params ) {
-		// ------------------------------------------------------------------
-		// Step 1: Rate limiting — prevent brute-force / enumeration attacks.
-		// ------------------------------------------------------------------
+		// Note: rate-limit check is handled by Login_Handler before calling
+		// this method. Applying check() again here would double-count attempts
+		// (H-6), locking users out after only 2 successful logins. We still
+		// record() individual failures below for accurate per-error tracking.
 		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-
-		if ( ! Rate_Limiter::check( $ip ) ) {
-			return new \WP_Error(
-				'rate_limit_exceeded',
-				esc_html__( 'Too many login attempts. Please wait before trying again.', 'microsoft-entra-sso' )
-			);
-		}
 
 		// ------------------------------------------------------------------
 		// Step 2: Validate the OAuth state parameter.
@@ -447,10 +441,12 @@ class OIDC_Client {
 		}
 
 		// Extract only the fields we need to limit cached surface area.
-		$config = array(
-			'authorization_endpoint' => esc_url_raw( $body['authorization_endpoint'] ),
-			'token_endpoint'         => esc_url_raw( $body['token_endpoint'] ),
-			'jwks_uri'               => esc_url_raw( $body['jwks_uri'] ),
+		// Security (M-6): enforce HTTPS-only to prevent MitM via cache poisoning.
+		$https_only = array( 'https' );
+		$config     = array(
+			'authorization_endpoint' => esc_url_raw( $body['authorization_endpoint'], $https_only ),
+			'token_endpoint'         => esc_url_raw( $body['token_endpoint'], $https_only ),
+			'jwks_uri'               => esc_url_raw( $body['jwks_uri'], $https_only ),
 			'issuer'                 => sanitize_text_field( $body['issuer'] ),
 		);
 
@@ -478,13 +474,13 @@ class OIDC_Client {
 	/**
 	 * Return the OIDC redirect URI (callback URL).
 	 *
-	 * The callback is handled on the WordPress login URL with the
-	 * 'action=entra_callback' parameter. This URI must be registered in the
-	 * Entra application's Redirect URIs list.
+	 * Uses a custom /sso/callback front-end endpoint instead of wp-login.php
+	 * so the callback works even when wp-login.php is blocked by security rules.
+	 * This URI must be registered in the Entra application's Redirect URIs list.
 	 *
 	 * @return string Fully-qualified callback URL.
 	 */
 	public static function get_redirect_uri(): string {
-		return wp_login_url() . '?action=entra_callback';
+		return home_url( '/sso/callback' );
 	}
 }

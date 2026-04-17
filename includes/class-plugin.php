@@ -130,7 +130,8 @@ class Plugin {
 		// Front-end + REST API authentication hooks.
 		add_action( 'init', array( $this, 'on_init' ) );
 
-		// Login-page hooks (handles OIDC/SAML callbacks and auto-redirect).
+		// Login-page hooks — only renders the SSO button on wp-login.php.
+		// SSO action dispatch is handled via /sso/* rewrite endpoints (on_init).
 		add_action( 'login_init', array( $this, 'on_login_init' ) );
 
 		// Admin-only hooks — lazy-loaded to avoid unnecessary overhead.
@@ -162,14 +163,60 @@ class Plugin {
 	}
 
 	/**
-	 * Early init hook — registers custom rewrite endpoints used by the plugin.
+	 * Early init hook — registers custom rewrite endpoints for SSO.
 	 *
-	 * Full implementation is provided in later phases.
+	 * Registers /sso/{action} rewrite rules so SSO callbacks bypass
+	 * wp-login.php and wp-admin/ entirely. These front-end URLs are
+	 * not blocked by security plugins that restrict login page access.
 	 *
 	 * @return void
 	 */
 	public function on_init(): void {
-		// Placeholder: register rewrite rules, REST routes, etc.
+		// Register /sso/{slug} rewrite rule — matches login, callback, saml-acs, logout.
+		add_rewrite_rule( '^sso/([a-z-]+)/?$', 'index.php?messo_action=$matches[1]', 'top' );
+		add_filter( 'query_vars', array( $this, 'register_query_vars' ) );
+		add_action( 'template_redirect', array( $this, 'handle_sso_request' ) );
+	}
+
+	/**
+	 * Register custom query var so WordPress does not strip it.
+	 *
+	 * @param string[] $vars Existing query vars.
+	 * @return string[] Modified query vars.
+	 */
+	public function register_query_vars( array $vars ): array {
+		$vars[] = 'messo_action';
+		return $vars;
+	}
+
+	/**
+	 * Dispatch SSO requests arriving via the /sso/{slug} rewrite rule.
+	 *
+	 * Maps URL slugs to internal action names and delegates to
+	 * Login_Handler::dispatch() which reads $_GET['action'].
+	 *
+	 * @return void
+	 */
+	public function handle_sso_request(): void {
+		$action = get_query_var( 'messo_action', '' );
+		if ( '' === $action ) {
+			return;
+		}
+
+		$action_map = array(
+			'login'    => 'entra_login',
+			'callback' => 'entra_callback',
+			'saml-acs' => 'entra_saml_acs',
+			'logout'   => 'entra_logout',
+		);
+
+		if ( ! isset( $action_map[ $action ] ) ) {
+			return;
+		}
+
+		// Set $_GET['action'] so Login_Handler::dispatch() works unchanged.
+		$_GET['action'] = $action_map[ $action ];
+		\MicrosoftEntraSSO\Login\Login_Handler::dispatch();
 	}
 
 	/**
@@ -181,7 +228,10 @@ class Plugin {
 	 * @return void
 	 */
 	public function on_login_init(): void {
-		\MicrosoftEntraSSO\Login\Login_Handler::init();
+		// Only render the SSO button on wp-login.php.
+		// SSO action dispatch is now handled via /sso/* rewrite endpoints
+		// registered in on_init() — do NOT register Login_Handler::init() here
+		// to avoid double-dispatch and doubled attack surface (H-1).
 		\MicrosoftEntraSSO\Login\Login_Button::init();
 	}
 

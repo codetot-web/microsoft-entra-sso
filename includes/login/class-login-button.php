@@ -62,7 +62,7 @@ class Login_Button {
 		$button_style = (string) $plugin->get_option( 'microsoft_entra_sso_button_style', 'default' );
 		$allow_local  = (bool) $plugin->get_option( 'microsoft_entra_sso_allow_local_login', false );
 
-		$sso_url   = esc_url( add_query_arg( 'action', 'entra_login', wp_login_url() ) );
+		$sso_url   = esc_url( home_url( '/sso/login' ) );
 		$local_url = esc_url( add_query_arg( 'local', '1', wp_login_url() ) );
 
 		$template = MESSO_PLUGIN_DIR . 'templates/login-button.php';

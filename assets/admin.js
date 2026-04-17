@@ -287,7 +287,7 @@
 			}
 		}
 
-		for ( var i = 0; i < radios.length; i++ ) {
+		for ( var i = 0, len = radios.length; i < len; i++ ) {
 			radios[ i ].addEventListener( 'change', toggle );
 		}
 

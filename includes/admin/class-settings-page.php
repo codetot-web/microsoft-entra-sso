@@ -405,7 +405,10 @@ class Settings_Page {
 		$value = (string) $value;
 
 		if ( '' === trim( $value ) ) {
-			return '';
+			// Empty submission — preserve the existing value (may have been
+			// imported via AJAX). The metadata field is not part of the main
+			// form, so it arrives empty on every normal settings save.
+			return (string) get_option( \MicrosoftEntraSSO\Plugin::OPTION_SAML_METADATA, '' );
 		}
 
 		$dom = \MicrosoftEntraSSO\XML\XML_Security::safe_load_xml( $value );

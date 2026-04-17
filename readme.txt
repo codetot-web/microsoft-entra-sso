@@ -4,7 +4,7 @@ Tags: sso, microsoft, entra, azure, openid-connect, saml, single-sign-on
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 2.0.2
+Stable tag: 2.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,6 +109,9 @@ if ( strpos( $_SERVER["REQUEST_URI"], "/sso/saml-acs" ) !== false ) {
 4. **Login page** — Microsoft sign-in button on the WordPress login form.
 
 == Changelog ==
+
+= 2.0.3 =
+* **Fixed:** JS lint errors in protocol toggle (CI green).
 
 = 2.0.2 =
 * **Fixed:** Skip Client Secret requirement when SAML protocol is selected.

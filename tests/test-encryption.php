@@ -1,11 +1,11 @@
 <?php
 /**
- * Unit tests for MicrosoftEntraSSO\Security\Encryption.
+ * Unit tests for SFME\Security\Encryption.
  *
- * @package MicrosoftEntraSSO\Tests
+ * @package SFME\Tests
  */
 
-use MicrosoftEntraSSO\Security\Encryption;
+use SFME\Security\Encryption;
 use PHPUnit\Framework\TestCase;
 
 /**

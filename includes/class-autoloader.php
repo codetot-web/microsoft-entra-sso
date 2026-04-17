@@ -1,24 +1,24 @@
 <?php
 /**
- * PSR-4-style autoloader for the MicrosoftEntraSSO namespace.
+ * PSR-4-style autoloader for the SFME namespace.
  *
- * Maps class names under the MicrosoftEntraSSO\ namespace to files inside
+ * Maps class names under the SFME\ namespace to files inside
  * the includes/ directory, following WordPress file-naming conventions:
  *  - Directory segments use kebab-case.
  *  - Class files are prefixed with "class-" and use kebab-case.
  *
  * Example mappings
  * ────────────────
- *  MicrosoftEntraSSO\Plugin
+ *  SFME\Plugin
  *      → includes/class-plugin.php
  *
- *  MicrosoftEntraSSO\Auth\OidcClient
+ *  SFME\Auth\OidcClient
  *      → includes/auth/class-oidc-client.php
  *
- *  MicrosoftEntraSSO\Security\Encryption
+ *  SFME\Security\Encryption
  *      → includes/security/class-encryption.php
  *
- * @package MicrosoftEntraSSO
+ * @package SFME
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -33,7 +33,7 @@ defined( 'ABSPATH' ) || exit;
  * @param string $identifier PascalCase identifier string.
  * @return string kebab-case version.
  */
-function messo_to_kebab_case( string $identifier ): string {
+function sfme_to_kebab_case( string $identifier ): string {
 	// Insert a hyphen before each uppercase letter that follows a lowercase
 	// letter or digit, then lowercase the whole string.
 	$kebab = preg_replace( '/([a-z0-9])([A-Z])/', '$1-$2', $identifier );
@@ -55,7 +55,7 @@ function messo_to_kebab_case( string $identifier ): string {
 spl_autoload_register(
 	function ( string $class_name ) {
 		// Root namespace prefix for this plugin.
-		$prefix        = 'MicrosoftEntraSSO\\';
+		$prefix        = 'SFME\\';
 		$prefix_length = strlen( $prefix );
 
 		// Bail early when the class does not belong to our namespace.
@@ -64,7 +64,7 @@ spl_autoload_register(
 		}
 
 		// Strip the namespace prefix to get the relative class identifier,
-		// e.g. "Auth\OidcClient" from "MicrosoftEntraSSO\Auth\OidcClient".
+		// e.g. "Auth\OidcClient" from "SFME\Auth\OidcClient".
 		$relative = substr( $class_name, $prefix_length );
 
 		// Split on namespace separators to produce path segments.
@@ -75,16 +75,16 @@ spl_autoload_register(
 		$short_name = array_pop( $parts );
 
 		// Convert each directory segment to kebab-case.
-		$dir_segments = array_map( 'messo_to_kebab_case', $parts );
+		$dir_segments = array_map( 'sfme_to_kebab_case', $parts );
 
 		// Build the file name using WordPress convention: class-{kebab-name}.php
 		// Replace underscores with hyphens so WP_Foo → class-wp-foo.php matches
 		// the WordPress file-naming standard for underscore-separated class names.
-		$file_name = 'class-' . str_replace( '_', '-', messo_to_kebab_case( $short_name ) ) . '.php';
+		$file_name = 'class-' . str_replace( '_', '-', sfme_to_kebab_case( $short_name ) ) . '.php';
 
 		// Assemble the absolute path.
 		$path_parts = array_merge(
-			array( MESSO_PLUGIN_DIR . 'includes' ),
+			array( SFME_PLUGIN_DIR . 'includes' ),
 			$dir_segments,
 			array( $file_name )
 		);

@@ -1,11 +1,11 @@
 <?php
 /**
- * Unit tests for MicrosoftEntraSSO\XML\Metadata_Parser.
+ * Unit tests for SFME\XML\Metadata_Parser.
  *
- * @package MicrosoftEntraSSO\Tests
+ * @package SFME\Tests
  */
 
-use MicrosoftEntraSSO\XML\Metadata_Parser;
+use SFME\XML\Metadata_Parser;
 use PHPUnit\Framework\TestCase;
 
 /**

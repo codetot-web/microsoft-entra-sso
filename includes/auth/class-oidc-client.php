@@ -7,15 +7,15 @@
  * 24 hours. All security tokens (state, nonce, PKCE verifier) are managed
  * via State_Manager as short-lived, single-use WordPress transients.
  *
- * @package MicrosoftEntraSSO\Auth
+ * @package SFME\Auth
  */
 
-namespace MicrosoftEntraSSO\Auth;
+namespace SFME\Auth;
 
-use MicrosoftEntraSSO\Plugin;
-use MicrosoftEntraSSO\Security\Encryption;
-use MicrosoftEntraSSO\Security\Rate_Limiter;
-use MicrosoftEntraSSO\Security\State_Manager;
+use SFME\Plugin;
+use SFME\Security\Encryption;
+use SFME\Security\Rate_Limiter;
+use SFME\Security\State_Manager;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -86,7 +86,7 @@ class OIDC_Client {
 		 * @param string[] $scopes Array of scope strings.
 		 */
 		$scopes = apply_filters(
-			'microsoft_entra_sso_oidc_scopes',
+			'sfme_oidc_scopes',
 			array( 'openid', 'profile', 'email' )
 		);
 
@@ -302,7 +302,7 @@ class OIDC_Client {
 			$discovery['token_endpoint'],
 			array(
 				'timeout'    => 15,
-				'user-agent' => 'Microsoft-Entra-SSO-Plugin/' . MESSO_VERSION,
+				'user-agent' => 'Microsoft-Entra-SSO-Plugin/' . SFME_VERSION,
 				'headers'    => array(
 					'Content-Type' => 'application/x-www-form-urlencoded',
 					'Accept'       => 'application/json',
@@ -381,7 +381,7 @@ class OIDC_Client {
 			);
 		}
 
-		$transient_key = 'messo_discovery_' . md5( $tenant_id );
+		$transient_key = 'sfme_discovery_' . md5( $tenant_id );
 
 		$cached = get_transient( $transient_key );
 
@@ -395,7 +395,7 @@ class OIDC_Client {
 			$discovery_url,
 			array(
 				'timeout'    => 10,
-				'user-agent' => 'Microsoft-Entra-SSO-Plugin/' . MESSO_VERSION,
+				'user-agent' => 'Microsoft-Entra-SSO-Plugin/' . SFME_VERSION,
 			)
 		);
 

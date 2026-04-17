@@ -7,10 +7,10 @@
  * intentionally rejects any algorithm other than RS256 to prevent the
  * "algorithm confusion" class of JWT attacks (e.g. alg=none, alg=HS256).
  *
- * @package MicrosoftEntraSSO\Auth
+ * @package SFME\Auth
  */
 
-namespace MicrosoftEntraSSO\Auth;
+namespace SFME\Auth;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  * Algorithm whitelist: RS256 only.
  * Clock skew tolerance: 60 seconds for exp / nbf checks.
  *
- * @package MicrosoftEntraSSO\Auth
+ * @package SFME\Auth
  */
 class Token_Validator {
 
@@ -114,7 +114,7 @@ class Token_Validator {
 		// a key rotation. Delete the cache, re-fetch once, and retry.
 		// This also limits the window during which a revoked key is accepted.
 		if ( ! $sig_valid ) {
-			$transient_key = 'messo_jwks_' . md5( $expected['jwks_uri'] );
+			$transient_key = 'sfme_jwks_' . md5( $expected['jwks_uri'] );
 			delete_transient( $transient_key );
 
 			$jwks = self::get_jwks( $expected['jwks_uri'] );
@@ -206,7 +206,7 @@ class Token_Validator {
 		 *
 		 * @param array $payload Validated JWT payload claims.
 		 */
-		return apply_filters( 'microsoft_entra_sso_token_claims', $payload );
+		return apply_filters( 'sfme_token_claims', $payload );
 	}
 
 	/**
@@ -345,7 +345,7 @@ class Token_Validator {
 	 * @return array|\WP_Error Decoded JWKS document on success, WP_Error on failure.
 	 */
 	public static function get_jwks( string $jwks_uri ) {
-		$transient_key = 'messo_jwks_' . md5( $jwks_uri );
+		$transient_key = 'sfme_jwks_' . md5( $jwks_uri );
 
 		$cached = get_transient( $transient_key );
 
@@ -357,7 +357,7 @@ class Token_Validator {
 			$jwks_uri,
 			array(
 				'timeout'    => 10,
-				'user-agent' => 'Microsoft-Entra-SSO-Plugin/' . MESSO_VERSION,
+				'user-agent' => 'Microsoft-Entra-SSO-Plugin/' . SFME_VERSION,
 			)
 		);
 

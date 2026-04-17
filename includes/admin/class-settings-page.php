@@ -6,10 +6,10 @@
  * data goes through the standard sanitize → save cycle with nonce
  * verification provided by settings_fields().
  *
- * @package MicrosoftEntraSSO\Admin
+ * @package SFME\Admin
  */
 
-namespace MicrosoftEntraSSO\Admin;
+namespace SFME\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -26,7 +26,7 @@ class Settings_Page {
 	 *
 	 * @var string
 	 */
-	const OPTION_GROUP = 'microsoft_entra_sso_settings';
+	const OPTION_GROUP = 'sfme_settings';
 
 	/**
 	 * Menu slug for the settings page.
@@ -48,7 +48,7 @@ class Settings_Page {
 		add_action( 'admin_menu', array( self::class, 'add_menu_page' ) );
 		add_action( 'admin_init', array( self::class, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue_assets' ) );
-		// L3: wp_ajax_messo_import_metadata is already registered by Plugin::init().
+		// L3: wp_ajax_sfme_import_metadata is already registered by Plugin::init().
 		// Do not add it here to avoid a duplicate hook that fires the handler twice.
 
 		Admin_Notices::register();
@@ -90,25 +90,25 @@ class Settings_Page {
 		}
 
 		$screen->add_help_tab( array(
-			'id'      => 'messo_help_quick_start',
+			'id'      => 'sfme_help_quick_start',
 			'title'   => __( 'Quick Start', 'sso-for-microsoft-entra' ),
 			'content' => self::get_help_quick_start(),
 		) );
 
 		$screen->add_help_tab( array(
-			'id'      => 'messo_help_azure_setup',
+			'id'      => 'sfme_help_azure_setup',
 			'title'   => __( 'Azure Setup', 'sso-for-microsoft-entra' ),
 			'content' => self::get_help_azure_setup(),
 		) );
 
 		$screen->add_help_tab( array(
-			'id'      => 'messo_help_saml',
+			'id'      => 'sfme_help_saml',
 			'title'   => __( 'SAML Setup', 'sso-for-microsoft-entra' ),
 			'content' => self::get_help_saml_setup(),
 		) );
 
 		$screen->add_help_tab( array(
-			'id'      => 'messo_help_troubleshooting',
+			'id'      => 'sfme_help_troubleshooting',
 			'title'   => __( 'Troubleshooting', 'sso-for-microsoft-entra' ),
 			'content' => self::get_help_troubleshooting(),
 		) );
@@ -167,7 +167,7 @@ class Settings_Page {
 			. '<ol>'
 			. '<li>' . esc_html__( 'In Azure Portal → Enterprise applications → your app → Single sign-on → SAML.', 'sso-for-microsoft-entra' ) . '</li>'
 			. '<li>' . esc_html__( 'Set Basic SAML Configuration:', 'sso-for-microsoft-entra' ) . '<br>'
-			. '&nbsp;&nbsp;' . esc_html__( 'Identifier (Entity ID):', 'sso-for-microsoft-entra' ) . ' <code>' . esc_html( \MicrosoftEntraSSO\Plugin::get_instance()->get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID, 'your-client-id' ) ) . '</code><br>'
+			. '&nbsp;&nbsp;' . esc_html__( 'Identifier (Entity ID):', 'sso-for-microsoft-entra' ) . ' <code>' . esc_html( \SFME\Plugin::get_instance()->get_option( \SFME\Plugin::OPTION_CLIENT_ID, 'your-client-id' ) ) . '</code><br>'
 			. '&nbsp;&nbsp;' . esc_html__( 'Reply URL (ACS):', 'sso-for-microsoft-entra' ) . ' <code>' . esc_url( home_url( '/sso/saml-acs' ) ) . '</code></li>'
 			. '<li>' . esc_html__( 'Under SAML Certificates, copy the App Federation Metadata URL.', 'sso-for-microsoft-entra' ) . '</li>'
 			. '<li>' . esc_html__( 'Paste it in the Metadata URL field below and click Import Metadata.', 'sso-for-microsoft-entra' ) . '</li>'
@@ -212,18 +212,18 @@ class Settings_Page {
 			return;
 		}
 
-		$plugin_url = MESSO_PLUGIN_URL;
-		$version    = MESSO_VERSION;
+		$plugin_url = SFME_PLUGIN_URL;
+		$version    = SFME_VERSION;
 
 		wp_enqueue_style(
-			'messo-admin',
+			'sfme-admin',
 			$plugin_url . 'assets/admin.css',
 			array(),
 			$version
 		);
 
 		wp_enqueue_script(
-			'messo-admin',
+			'sfme-admin',
 			$plugin_url . 'assets/admin.js',
 			array(),
 			$version,
@@ -231,12 +231,12 @@ class Settings_Page {
 		);
 
 		wp_localize_script(
-			'messo-admin',
-			'messo_admin',
+			'sfme-admin',
+			'sfme_admin',
 			array(
 				'ajax_url'      => admin_url( 'admin-ajax.php' ),
-				'nonce'         => wp_create_nonce( 'messo_admin_nonce' ),
-				'dismiss_nonce' => wp_create_nonce( 'messo_dismiss_notice' ),
+				'nonce'         => wp_create_nonce( 'sfme_admin_nonce' ),
+				'dismiss_nonce' => wp_create_nonce( 'sfme_dismiss_notice' ),
 				'strings'       => array(
 					'importing'    => __( 'Importing…', 'sso-for-microsoft-entra' ),
 					'import_done'  => __( 'Metadata imported successfully.', 'sso-for-microsoft-entra' ),
@@ -262,7 +262,7 @@ class Settings_Page {
 	public static function register_settings(): void {
 		// --- Section: Connection ---
 		add_settings_section(
-			'messo_section_connection',
+			'sfme_section_connection',
 			__( 'Connection', 'sso-for-microsoft-entra' ),
 			array( self::class, 'render_section_connection' ),
 			self::PAGE_SLUG
@@ -270,7 +270,7 @@ class Settings_Page {
 
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_TENANT_ID,
+			\SFME\Plugin::OPTION_TENANT_ID,
 			array(
 				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_tenant_id' ),
 				'default'           => '',
@@ -278,7 +278,7 @@ class Settings_Page {
 		);
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID,
+			\SFME\Plugin::OPTION_CLIENT_ID,
 			array(
 				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_client_id' ),
 				'default'           => '',
@@ -286,7 +286,7 @@ class Settings_Page {
 		);
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_CLIENT_SECRET,
+			\SFME\Plugin::OPTION_CLIENT_SECRET,
 			array(
 				'sanitize_callback' => array( self::class, 'sanitize_client_secret' ),
 				'default'           => '',
@@ -299,14 +299,14 @@ class Settings_Page {
 				esc_html( $field['label'] ),
 				array( self::class, 'render_field' ),
 				self::PAGE_SLUG,
-				'messo_section_connection',
+				'sfme_section_connection',
 				$field
 			);
 		}
 
 		// --- Section: Authentication ---
 		add_settings_section(
-			'messo_section_authentication',
+			'sfme_section_authentication',
 			__( 'Authentication', 'sso-for-microsoft-entra' ),
 			array( self::class, 'render_section_authentication' ),
 			self::PAGE_SLUG
@@ -314,7 +314,7 @@ class Settings_Page {
 
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_AUTH_PROTOCOL,
+			\SFME\Plugin::OPTION_AUTH_PROTOCOL,
 			array(
 				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_protocol' ),
 				'default'           => 'oidc',
@@ -323,12 +323,12 @@ class Settings_Page {
 		// M1: boolean checkbox options must use absint() so only 0 or 1 is stored.
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_AUTO_REDIRECT,
+			\SFME\Plugin::OPTION_AUTO_REDIRECT,
 			array( 'sanitize_callback' => 'absint' )
 		);
 		register_setting(
 			self::OPTION_GROUP,
-			'microsoft_entra_sso_allow_local_login',
+			'sfme_allow_local_login',
 			array( 'sanitize_callback' => 'absint' )
 		);
 
@@ -338,14 +338,14 @@ class Settings_Page {
 				esc_html( $field['label'] ),
 				array( self::class, 'render_field' ),
 				self::PAGE_SLUG,
-				'messo_section_authentication',
+				'sfme_section_authentication',
 				$field
 			);
 		}
 
 		// --- Section: User Provisioning ---
 		add_settings_section(
-			'messo_section_provisioning',
+			'sfme_section_provisioning',
 			__( 'User Provisioning', 'sso-for-microsoft-entra' ),
 			array( self::class, 'render_section_provisioning' ),
 			self::PAGE_SLUG
@@ -353,12 +353,12 @@ class Settings_Page {
 
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_USER_PROVISIONING,
+			\SFME\Plugin::OPTION_USER_PROVISIONING,
 			array( 'sanitize_callback' => 'absint' )
 		);
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_DEFAULT_ROLE,
+			\SFME\Plugin::OPTION_DEFAULT_ROLE,
 			array(
 				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_role' ),
 				'default'           => 'subscriber',
@@ -366,7 +366,7 @@ class Settings_Page {
 		);
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_ROLE_MAP,
+			\SFME\Plugin::OPTION_ROLE_MAP,
 			array(
 				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_role_map' ),
 				'default'           => array(),
@@ -379,14 +379,14 @@ class Settings_Page {
 				esc_html( $field['label'] ),
 				array( self::class, 'render_field' ),
 				self::PAGE_SLUG,
-				'messo_section_provisioning',
+				'sfme_section_provisioning',
 				$field
 			);
 		}
 
 		// --- Section: Login Customization ---
 		add_settings_section(
-			'messo_section_customization',
+			'sfme_section_customization',
 			__( 'Login Customization', 'sso-for-microsoft-entra' ),
 			array( self::class, 'render_section_customization' ),
 			self::PAGE_SLUG
@@ -394,7 +394,7 @@ class Settings_Page {
 
 		register_setting(
 			self::OPTION_GROUP,
-			'microsoft_entra_sso_button_text',
+			'sfme_button_text',
 			array(
 				'sanitize_callback' => 'sanitize_text_field',
 				'default'           => __( 'Sign in with Microsoft', 'sso-for-microsoft-entra' ),
@@ -402,7 +402,7 @@ class Settings_Page {
 		);
 		register_setting(
 			self::OPTION_GROUP,
-			'microsoft_entra_sso_button_style',
+			'sfme_button_style',
 			array(
 				'sanitize_callback' => 'sanitize_text_field',
 				'default'           => 'default',
@@ -415,14 +415,14 @@ class Settings_Page {
 				esc_html( $field['label'] ),
 				array( self::class, 'render_field' ),
 				self::PAGE_SLUG,
-				'messo_section_customization',
+				'sfme_section_customization',
 				$field
 			);
 		}
 
 		// --- Section: Rate Limiting ---
 		add_settings_section(
-			'messo_section_rate_limiting',
+			'sfme_section_rate_limiting',
 			__( 'Rate Limiting', 'sso-for-microsoft-entra' ),
 			array( self::class, 'render_section_rate_limiting' ),
 			self::PAGE_SLUG
@@ -430,7 +430,7 @@ class Settings_Page {
 
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_RATE_LIMIT_MAX,
+			\SFME\Plugin::OPTION_RATE_LIMIT_MAX,
 			array(
 				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_positive_int' ),
 				'default'           => 5,
@@ -438,7 +438,7 @@ class Settings_Page {
 		);
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_RATE_LIMIT_WINDOW,
+			\SFME\Plugin::OPTION_RATE_LIMIT_WINDOW,
 			array(
 				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_positive_int' ),
 				'default'           => 900,
@@ -451,14 +451,14 @@ class Settings_Page {
 				esc_html( $field['label'] ),
 				array( self::class, 'render_field' ),
 				self::PAGE_SLUG,
-				'messo_section_rate_limiting',
+				'sfme_section_rate_limiting',
 				$field
 			);
 		}
 
 		// --- Section: Metadata Import ---
 		add_settings_section(
-			'messo_section_metadata',
+			'sfme_section_metadata',
 			__( 'SAML Metadata Import', 'sso-for-microsoft-entra' ),
 			array( self::class, 'render_section_metadata' ),
 			self::PAGE_SLUG
@@ -466,7 +466,7 @@ class Settings_Page {
 
 		register_setting(
 			self::OPTION_GROUP,
-			\MicrosoftEntraSSO\Plugin::OPTION_SAML_METADATA,
+			\SFME\Plugin::OPTION_SAML_METADATA,
 			array(
 				// Security (H2): sanitize_textarea_field() destroys XML by stripping tags
 				// and encoding entities. Use a callback that validates the XML is parseable
@@ -478,11 +478,11 @@ class Settings_Page {
 		);
 
 		add_settings_field(
-			'messo_metadata_url',
+			'sfme_metadata_url',
 			esc_html__( 'Metadata URL', 'sso-for-microsoft-entra' ),
 			array( self::class, 'render_metadata_import_field' ),
 			self::PAGE_SLUG,
-			'messo_section_metadata'
+			'sfme_section_metadata'
 		);
 	}
 
@@ -503,10 +503,10 @@ class Settings_Page {
 
 		// Empty means the user left the field blank — preserve the existing value.
 		if ( '' === $value ) {
-			return (string) get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_SECRET, '' );
+			return (string) get_option( \SFME\Plugin::OPTION_CLIENT_SECRET, '' );
 		}
 
-		return \MicrosoftEntraSSO\Security\Encryption::encrypt( $value );
+		return \SFME\Security\Encryption::encrypt( $value );
 	}
 
 	/**
@@ -531,20 +531,20 @@ class Settings_Page {
 			// Empty submission — preserve the existing value (may have been
 			// imported via AJAX). The metadata field is not part of the main
 			// form, so it arrives empty on every normal settings save.
-			return (string) get_option( \MicrosoftEntraSSO\Plugin::OPTION_SAML_METADATA, '' );
+			return (string) get_option( \SFME\Plugin::OPTION_SAML_METADATA, '' );
 		}
 
-		$dom = \MicrosoftEntraSSO\XML\XML_Security::safe_load_xml( $value );
+		$dom = \SFME\XML\XML_Security::safe_load_xml( $value );
 
 		if ( is_wp_error( $dom ) ) {
 			// Invalid XML — keep the previously stored value to avoid data loss.
 			add_settings_error(
-				\MicrosoftEntraSSO\Plugin::OPTION_SAML_METADATA,
+				\SFME\Plugin::OPTION_SAML_METADATA,
 				'saml_metadata_invalid',
 				__( 'SAML metadata XML is invalid and was not saved.', 'sso-for-microsoft-entra' ),
 				'error'
 			);
-			return (string) get_option( \MicrosoftEntraSSO\Plugin::OPTION_SAML_METADATA, '' );
+			return (string) get_option( \SFME\Plugin::OPTION_SAML_METADATA, '' );
 		}
 
 		return $dom->saveXML();
@@ -641,9 +641,9 @@ class Settings_Page {
 				// Never output the encrypted blob into the field; show a placeholder.
 				$has_value = '' !== (string) $value;
 				printf(
-					'<div class="messo-secret-field">'
+					'<div class="sfme-secret-field">'
 					. '<input type="password" id="%1$s" name="%1$s" value="" class="regular-text" autocomplete="new-password" placeholder="%2$s" />'
-					. '<button type="button" class="button messo-toggle-secret" data-target="%1$s">%3$s</button>'
+					. '<button type="button" class="button sfme-toggle-secret" data-target="%1$s">%3$s</button>'
 					. '</div>',
 					esc_attr( $id ),
 					$has_value
@@ -734,19 +734,19 @@ class Settings_Page {
 	 */
 	public static function render_metadata_import_field(): void {
 		?>
-		<div class="messo-metadata-import">
+		<div class="sfme-metadata-import">
 			<input
 				type="url"
-				id="messo_metadata_url"
-				name="messo_metadata_url"
+				id="sfme_metadata_url"
+				name="sfme_metadata_url"
 				value=""
 				class="regular-text"
 				placeholder="<?php esc_attr_e( 'https://login.microsoftonline.com/{tenant}/federationmetadata/2007-06/federationmetadata.xml', 'sso-for-microsoft-entra' ); ?>"
 			/>
-			<button type="button" id="messo-import-metadata" class="button button-secondary">
+			<button type="button" id="sfme-import-metadata" class="button button-secondary">
 				<?php esc_html_e( 'Import Metadata', 'sso-for-microsoft-entra' ); ?>
 			</button>
-			<span id="messo-import-status" class="messo-import-status" aria-live="polite"></span>
+			<span id="sfme-import-status" class="sfme-import-status" aria-live="polite"></span>
 		</div>
 		<p class="description">
 			<?php esc_html_e( 'Paste the App Federation Metadata URL from your Entra Enterprise Application and click Import to populate SAML settings automatically.', 'sso-for-microsoft-entra' ); ?>
@@ -765,14 +765,14 @@ class Settings_Page {
 		$mapping = is_array( $saved_value ) ? $saved_value : array();
 		$roles   = wp_roles()->get_names();
 
-		echo '<div id="messo-role-mapping" class="messo-role-mapping">';
-		echo '<table class="messo-role-mapping-table widefat striped">';
+		echo '<div id="sfme-role-mapping" class="sfme-role-mapping">';
+		echo '<table class="sfme-role-mapping-table widefat striped">';
 		echo '<thead><tr>';
 		echo '<th>' . esc_html__( 'Entra Group Object ID', 'sso-for-microsoft-entra' ) . '</th>';
 		echo '<th>' . esc_html__( 'WordPress Role', 'sso-for-microsoft-entra' ) . '</th>';
 		echo '<th></th>';
 		echo '</tr></thead>';
-		echo '<tbody id="messo-role-mapping-rows">';
+		echo '<tbody id="sfme-role-mapping-rows">';
 
 		if ( ! empty( $mapping ) ) {
 			foreach ( $mapping as $group_id => $role ) {
@@ -784,12 +784,12 @@ class Settings_Page {
 		echo '</table>';
 
 		printf(
-			'<button type="button" id="messo-add-role-mapping" class="button button-secondary" style="margin-top:8px">%s</button>',
+			'<button type="button" id="sfme-add-role-mapping" class="button button-secondary" style="margin-top:8px">%s</button>',
 			esc_html__( 'Add Mapping', 'sso-for-microsoft-entra' )
 		);
 
 		// Hidden template row cloned by JS.
-		echo '<template id="messo-role-row-template">';
+		echo '<template id="sfme-role-row-template">';
 		self::render_role_mapping_row( $option_id, '', '', $roles );
 		echo '</template>';
 
@@ -806,7 +806,7 @@ class Settings_Page {
 	 * @return void
 	 */
 	private static function render_role_mapping_row( string $option_id, string $group_id, string $role, array $roles ): void {
-		echo '<tr class="messo-role-mapping-row">';
+		echo '<tr class="sfme-role-mapping-row">';
 
 		printf(
 			'<td><input type="text" name="%s[rows][][group_id]" value="%s" class="regular-text" placeholder="%s" /></td>',
@@ -827,7 +827,7 @@ class Settings_Page {
 		echo '</select></td>';
 
 		printf(
-			'<td><button type="button" class="button button-link-delete messo-remove-row">%s</button></td>',
+			'<td><button type="button" class="button button-link-delete sfme-remove-row">%s</button></td>',
 			esc_html__( 'Remove', 'sso-for-microsoft-entra' )
 		);
 
@@ -848,7 +848,7 @@ class Settings_Page {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'sso-for-microsoft-entra' ) );
 		}
 
-		$template = MESSO_PLUGIN_DIR . 'templates/admin-settings.php';
+		$template = SFME_PLUGIN_DIR . 'templates/admin-settings.php';
 
 		if ( file_exists( $template ) ) {
 			include $template;
@@ -907,7 +907,7 @@ class Settings_Page {
 	 * @return void
 	 */
 	public static function handle_import_metadata(): void {
-		check_ajax_referer( 'messo_admin_nonce', 'nonce' );
+		check_ajax_referer( 'sfme_admin_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
@@ -927,7 +927,7 @@ class Settings_Page {
 		// Extract tenant ID and client ID from the metadata URL before fetching.
 		$extracted = self::extract_ids_from_metadata_url( $url );
 
-		$dom = \MicrosoftEntraSSO\XML\XML_Security::safe_load_xml_from_url( $url );
+		$dom = \SFME\XML\XML_Security::safe_load_xml_from_url( $url );
 
 		if ( is_wp_error( $dom ) ) {
 			wp_send_json_error(
@@ -938,20 +938,20 @@ class Settings_Page {
 		// Security (H-2): pass through sanitize_saml_metadata() so the AJAX path
 		// uses the same validation as the Settings API form submission.
 		update_option(
-			\MicrosoftEntraSSO\Plugin::OPTION_SAML_METADATA,
+			\SFME\Plugin::OPTION_SAML_METADATA,
 			self::sanitize_saml_metadata( $dom->saveXML() )
 		);
 
 		// Auto-populate tenant ID and client ID extracted from the URL.
 		if ( ! empty( $extracted['tenant_id'] ) ) {
-			update_option( \MicrosoftEntraSSO\Plugin::OPTION_TENANT_ID, $extracted['tenant_id'] );
+			update_option( \SFME\Plugin::OPTION_TENANT_ID, $extracted['tenant_id'] );
 		}
 		if ( ! empty( $extracted['client_id'] ) ) {
-			update_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID, $extracted['client_id'] );
+			update_option( \SFME\Plugin::OPTION_CLIENT_ID, $extracted['client_id'] );
 		}
 
 		// Auto-switch to SAML protocol since federation metadata is SAML-specific.
-		update_option( \MicrosoftEntraSSO\Plugin::OPTION_AUTH_PROTOCOL, 'saml' );
+		update_option( \SFME\Plugin::OPTION_AUTH_PROTOCOL, 'saml' );
 
 		// Build a descriptive success message.
 		$auto_filled = array();

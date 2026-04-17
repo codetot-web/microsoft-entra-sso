@@ -6,7 +6,7 @@
  * loaded and exercised without a full WordPress installation. Only the WP
  * functions actually called by the tested classes are stubbed here.
  *
- * @package MicrosoftEntraSSO\Tests
+ * @package SFME\Tests
  */
 
 // ---------------------------------------------------------------------------
@@ -17,16 +17,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
 
-if ( ! defined( 'MESSO_VERSION' ) ) {
-	define( 'MESSO_VERSION', '1.0.0' );
+if ( ! defined( 'SFME_VERSION' ) ) {
+	define( 'SFME_VERSION', '1.0.0' );
 }
 
-if ( ! defined( 'MESSO_PLUGIN_DIR' ) ) {
-	define( 'MESSO_PLUGIN_DIR', dirname( __DIR__ ) . '/' );
+if ( ! defined( 'SFME_PLUGIN_DIR' ) ) {
+	define( 'SFME_PLUGIN_DIR', dirname( __DIR__ ) . '/' );
 }
 
-if ( ! defined( 'MESSO_PLUGIN_FILE' ) ) {
-	define( 'MESSO_PLUGIN_FILE', dirname( __DIR__ ) . '/sso-for-microsoft-entra.php' );
+if ( ! defined( 'SFME_PLUGIN_FILE' ) ) {
+	define( 'SFME_PLUGIN_FILE', dirname( __DIR__ ) . '/sso-for-microsoft-entra.php' );
 }
 
 if ( ! defined( 'DAY_IN_SECONDS' ) ) {
@@ -133,7 +133,7 @@ if ( ! function_exists( 'is_wp_error' ) ) {
 // ---------------------------------------------------------------------------
 
 /** @var array<string,array{value:mixed,expiry:int}> In-memory transient store. */
-$GLOBALS['_messo_transients'] = array();
+$GLOBALS['_sfme_transients'] = array();
 
 if ( ! function_exists( 'set_transient' ) ) {
 	/**
@@ -145,7 +145,7 @@ if ( ! function_exists( 'set_transient' ) ) {
 	 * @return bool
 	 */
 	function set_transient( string $transient, $value, int $expiration = 0 ): bool {
-		$GLOBALS['_messo_transients'][ $transient ] = array(
+		$GLOBALS['_sfme_transients'][ $transient ] = array(
 			'value'  => $value,
 			'expiry' => $expiration > 0 ? time() + $expiration : 0,
 		);
@@ -161,14 +161,14 @@ if ( ! function_exists( 'get_transient' ) ) {
 	 * @return mixed Value or false when not found / expired.
 	 */
 	function get_transient( string $transient ) {
-		if ( ! isset( $GLOBALS['_messo_transients'][ $transient ] ) ) {
+		if ( ! isset( $GLOBALS['_sfme_transients'][ $transient ] ) ) {
 			return false;
 		}
 
-		$entry = $GLOBALS['_messo_transients'][ $transient ];
+		$entry = $GLOBALS['_sfme_transients'][ $transient ];
 
 		if ( $entry['expiry'] > 0 && time() > $entry['expiry'] ) {
-			unset( $GLOBALS['_messo_transients'][ $transient ] );
+			unset( $GLOBALS['_sfme_transients'][ $transient ] );
 			return false;
 		}
 
@@ -184,7 +184,7 @@ if ( ! function_exists( 'delete_transient' ) ) {
 	 * @return bool
 	 */
 	function delete_transient( string $transient ): bool {
-		unset( $GLOBALS['_messo_transients'][ $transient ] );
+		unset( $GLOBALS['_sfme_transients'][ $transient ] );
 		return true;
 	}
 }
@@ -198,7 +198,7 @@ if ( ! function_exists( 'get_option' ) ) {
 	 * @return mixed
 	 */
 	function get_option( string $option, $default = false ) {
-		return $GLOBALS['_messo_options'][ $option ] ?? $default;
+		return $GLOBALS['_sfme_options'][ $option ] ?? $default;
 	}
 }
 
@@ -211,12 +211,12 @@ if ( ! function_exists( 'update_option' ) ) {
 	 * @return bool
 	 */
 	function update_option( string $option, $value ): bool {
-		$GLOBALS['_messo_options'][ $option ] = $value;
+		$GLOBALS['_sfme_options'][ $option ] = $value;
 		return true;
 	}
 }
 
-$GLOBALS['_messo_options'] = array();
+$GLOBALS['_sfme_options'] = array();
 
 // ---------------------------------------------------------------------------
 // 4. WP_Error class stub

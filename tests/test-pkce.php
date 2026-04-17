@@ -1,11 +1,11 @@
 <?php
 /**
- * Unit tests for MicrosoftEntraSSO\Auth\PKCE.
+ * Unit tests for SFME\Auth\PKCE.
  *
- * @package MicrosoftEntraSSO\Tests
+ * @package SFME\Tests
  */
 
-use MicrosoftEntraSSO\Auth\PKCE;
+use SFME\Auth\PKCE;
 use PHPUnit\Framework\TestCase;
 
 /**

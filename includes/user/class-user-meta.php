@@ -5,10 +5,10 @@
  * Centralises all user meta interactions so keys are never scattered
  * across the codebase as magic strings.
  *
- * @package MicrosoftEntraSSO\User
+ * @package SFME\User
  */
 
-namespace MicrosoftEntraSSO\User;
+namespace SFME\User;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -29,28 +29,28 @@ class User_Meta {
 	 *
 	 * @var string
 	 */
-	const ENTRA_OID = '_messo_entra_oid';
+	const ENTRA_OID = '_sfme_entra_oid';
 
 	/**
 	 * Unix timestamp of the user's most recent SSO login.
 	 *
 	 * @var string
 	 */
-	const LAST_LOGIN = '_messo_last_login';
+	const LAST_LOGIN = '_sfme_last_login';
 
 	/**
 	 * JSON-encoded array of Entra group Object IDs the user belongs to.
 	 *
 	 * @var string
 	 */
-	const ENTRA_GROUPS = '_messo_entra_groups';
+	const ENTRA_GROUPS = '_sfme_entra_groups';
 
 	/**
 	 * Authentication method used during login: "oidc" or "saml".
 	 *
 	 * @var string
 	 */
-	const LOGIN_METHOD = '_messo_login_method';
+	const LOGIN_METHOD = '_sfme_login_method';
 
 	// -------------------------------------------------------------------------
 	// CRUD helpers

@@ -17,7 +17,7 @@
 
 /* ─── Divider ────────────────────────────────────────────────────────────── */
 
-.messo-divider {
+.sfme-divider {
 	display: flex;
 	align-items: center;
 	text-align: center;
@@ -26,30 +26,30 @@
 	font-size: 13px;
 }
 
-.messo-divider::before,
-.messo-divider::after {
+.sfme-divider::before,
+.sfme-divider::after {
 	content: "";
 	flex: 1;
 	border-bottom: 1px solid #dcdcde;
 }
 
-.messo-divider::before {
+.sfme-divider::before {
 	margin-right: 8px;
 }
 
-.messo-divider::after {
+.sfme-divider::after {
 	margin-left: 8px;
 }
 
 /* ─── Button wrapper ─────────────────────────────────────────────────────── */
 
-.messo-btn-wrap {
+.sfme-btn-wrap {
 	margin-bottom: 12px;
 }
 
 /* ─── Button base ────────────────────────────────────────────────────────── */
 
-.messo-btn {
+.sfme-btn {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -70,62 +70,62 @@
 
 /* ─── Default / Light variant ────────────────────────────────────────────── */
 
-.messo-btn,
-.messo-btn-light {
+.sfme-btn,
+.sfme-btn-light {
 	background: #ffffff;
 	color: #2f2f2f;
 	border-color: #2f2f2f;
 }
 
-.messo-btn:hover,
-.messo-btn-light:hover {
+.sfme-btn:hover,
+.sfme-btn-light:hover {
 	background: #f3f2f1;
 	color: #2f2f2f;
 }
 
-.messo-btn:focus,
-.messo-btn-light:focus {
+.sfme-btn:focus,
+.sfme-btn-light:focus {
 	outline: 2px solid #0078d4;
 	outline-offset: 2px;
 }
 
 /* ─── Dark variant ───────────────────────────────────────────────────────── */
 
-.messo-btn-dark {
+.sfme-btn-dark {
 	background: #2f2f2f;
 	color: #ffffff;
 	border-color: #2f2f2f;
 }
 
-.messo-btn-dark:hover {
+.sfme-btn-dark:hover {
 	background: #1a1a1a;
 	color: #ffffff;
 }
 
-.messo-btn-dark:focus {
+.sfme-btn-dark:focus {
 	outline: 2px solid #0078d4;
 	outline-offset: 2px;
 }
 
 /* ─── Button icon ────────────────────────────────────────────────────────── */
 
-.messo-btn svg {
+.sfme-btn svg {
 	flex-shrink: 0;
 }
 
 /* ─── Local login bypass link ────────────────────────────────────────────── */
 
-.messo-local-login {
+.sfme-local-login {
 	text-align: center;
 	margin-top: 8px;
 	font-size: 12px;
 }
 
-.messo-local-login a {
+.sfme-local-login a {
 	color: #646970;
 	text-decoration: underline;
 }
 
-.messo-local-login a:hover {
+.sfme-local-login a:hover {
 	color: #1d2327;
 }

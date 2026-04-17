@@ -8,10 +8,10 @@
  * version byte so that the correct decryption path can always be chosen
  * without out-of-band configuration.
  *
- * @package MicrosoftEntraSSO\Security
+ * @package SFME\Security
  */
 
-namespace MicrosoftEntraSSO\Security;
+namespace SFME\Security;
 
 defined( 'ABSPATH' ) || exit;
 

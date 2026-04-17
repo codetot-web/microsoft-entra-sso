@@ -6,10 +6,10 @@
  * Entra group Object IDs => WP role slugs) and returns the first
  * matching WP role for the authenticated user's group list.
  *
- * @package MicrosoftEntraSSO\User
+ * @package SFME\User
  */
 
-namespace MicrosoftEntraSSO\User;
+namespace SFME\User;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -38,8 +38,8 @@ class Role_Mapper {
 	 * @return string WordPress role slug.
 	 */
 	public static function map_role( array $claims ): string {
-		$role_map = \MicrosoftEntraSSO\Plugin::get_instance()->get_option(
-			\MicrosoftEntraSSO\Plugin::OPTION_ROLE_MAP,
+		$role_map = \SFME\Plugin::get_instance()->get_option(
+			\SFME\Plugin::OPTION_ROLE_MAP,
 			array()
 		);
 
@@ -53,8 +53,8 @@ class Role_Mapper {
 			}
 		}
 
-		$default_role = \MicrosoftEntraSSO\Plugin::get_instance()->get_option(
-			\MicrosoftEntraSSO\Plugin::OPTION_DEFAULT_ROLE,
+		$default_role = \SFME\Plugin::get_instance()->get_option(
+			\SFME\Plugin::OPTION_DEFAULT_ROLE,
 			'subscriber'
 		);
 

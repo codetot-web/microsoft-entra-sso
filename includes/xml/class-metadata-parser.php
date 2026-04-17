@@ -7,10 +7,10 @@
  * XML document typically downloaded from the Entra admin portal under
  * "Enterprise applications → SAML setup → Federation Metadata XML".
  *
- * @package MicrosoftEntraSSO\XML
+ * @package SFME\XML
  */
 
-namespace MicrosoftEntraSSO\XML;
+namespace SFME\XML;
 
 defined( 'ABSPATH' ) || exit;
 

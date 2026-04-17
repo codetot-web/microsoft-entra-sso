@@ -6,10 +6,10 @@
  * of authentication attempts per IP address within a sliding window. Counters
  * are persisted as WordPress transients so no additional storage is required.
  *
- * @package MicrosoftEntraSSO\Security
+ * @package SFME\Security
  */
 
-namespace MicrosoftEntraSSO\Security;
+namespace SFME\Security;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  *   - 5 attempts per 15-minute window
  *
  * Transient key format:
- *   messo_rate_{md5(identifier)}
+ *   sfme_rate_{md5(identifier)}
  *
  * Stored value (serialised array):
  *   [ 'count' => int, 'first_attempt' => int (Unix timestamp) ]
@@ -32,7 +32,7 @@ class Rate_Limiter {
 	 *
 	 * @var string
 	 */
-	const PREFIX = 'messo_rate_';
+	const PREFIX = 'sfme_rate_';
 
 	// -------------------------------------------------------------------------
 	// Public API
@@ -182,7 +182,7 @@ class Rate_Limiter {
 	 *
 	 * @param string $identifier Client identifier (e.g. IP address).
 	 *
-	 * @return string Transient key of the form `messo_rate_{md5hash}`.
+	 * @return string Transient key of the form `sfme_rate_{md5hash}`.
 	 */
 	private static function key( string $identifier ): string {
 		return self::PREFIX . md5( $identifier );
@@ -191,13 +191,13 @@ class Rate_Limiter {
 	/**
 	 * Return the configured maximum number of attempts per window.
 	 *
-	 * Filterable via `microsoft_entra_sso_rate_limit_attempts`.
+	 * Filterable via `sfme_rate_limit_attempts`.
 	 *
 	 * @return int Maximum attempts (minimum 1).
 	 */
 	private static function get_max_attempts(): int {
 		// Read from plugin settings, fall back to 5.
-		$saved = (int) get_option( \MicrosoftEntraSSO\Plugin::OPTION_RATE_LIMIT_MAX, 5 );
+		$saved = (int) get_option( \SFME\Plugin::OPTION_RATE_LIMIT_MAX, 5 );
 
 		/**
 		 * Filters the maximum number of authentication attempts allowed within
@@ -205,7 +205,7 @@ class Rate_Limiter {
 		 *
 		 * @param int $attempts Value from settings or default 5.
 		 */
-		$attempts = (int) apply_filters( 'microsoft_entra_sso_rate_limit_attempts', $saved );
+		$attempts = (int) apply_filters( 'sfme_rate_limit_attempts', $saved );
 
 		return max( 1, $attempts );
 	}
@@ -213,20 +213,20 @@ class Rate_Limiter {
 	/**
 	 * Return the configured sliding-window duration in seconds.
 	 *
-	 * Filterable via `microsoft_entra_sso_rate_limit_window`.
+	 * Filterable via `sfme_rate_limit_window`.
 	 *
 	 * @return int Window duration in seconds (minimum 60).
 	 */
 	private static function get_window(): int {
 		// Read from plugin settings, fall back to 900 (15 minutes).
-		$saved = (int) get_option( \MicrosoftEntraSSO\Plugin::OPTION_RATE_LIMIT_WINDOW, 900 );
+		$saved = (int) get_option( \SFME\Plugin::OPTION_RATE_LIMIT_WINDOW, 900 );
 
 		/**
 		 * Filters the duration of the rate-limit window in seconds.
 		 *
 		 * @param int $window Value from settings or default 900.
 		 */
-		$window = (int) apply_filters( 'microsoft_entra_sso_rate_limit_window', $saved );
+		$window = (int) apply_filters( 'sfme_rate_limit_window', $saved );
 
 		return max( 60, $window );
 	}

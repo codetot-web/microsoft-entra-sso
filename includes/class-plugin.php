@@ -2,10 +2,10 @@
 /**
  * Main plugin class — bootstraps all subsystems.
  *
- * @package MicrosoftEntraSSO
+ * @package SFME
  */
 
-namespace MicrosoftEntraSSO;
+namespace SFME;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -25,57 +25,57 @@ class Plugin {
 	/**
 	 * Tenant ID (Directory ID) for the Entra application registration.
 	 */
-	const OPTION_TENANT_ID = 'microsoft_entra_sso_tenant_id';
+	const OPTION_TENANT_ID = 'sfme_tenant_id';
 
 	/**
 	 * Application (client) ID of the Entra app registration.
 	 */
-	const OPTION_CLIENT_ID = 'microsoft_entra_sso_client_id';
+	const OPTION_CLIENT_ID = 'sfme_client_id';
 
 	/**
 	 * Encrypted client secret for the Entra application.
 	 */
-	const OPTION_CLIENT_SECRET = 'microsoft_entra_sso_client_secret';
+	const OPTION_CLIENT_SECRET = 'sfme_client_secret';
 
 	/**
 	 * Authentication protocol to use: "oidc" or "saml".
 	 */
-	const OPTION_AUTH_PROTOCOL = 'microsoft_entra_sso_auth_protocol';
+	const OPTION_AUTH_PROTOCOL = 'sfme_auth_protocol';
 
 	/**
 	 * Whether to redirect users directly to Entra login (bypass WP login form).
 	 */
-	const OPTION_AUTO_REDIRECT = 'microsoft_entra_sso_auto_redirect';
+	const OPTION_AUTO_REDIRECT = 'sfme_auto_redirect';
 
 	/**
 	 * Role mapping JSON: maps Entra group object IDs to WP role slugs.
 	 */
-	const OPTION_ROLE_MAP = 'microsoft_entra_sso_role_map';
+	const OPTION_ROLE_MAP = 'sfme_role_map';
 
 	/**
 	 * Default WordPress role assigned to newly provisioned users.
 	 */
-	const OPTION_DEFAULT_ROLE = 'microsoft_entra_sso_default_role';
+	const OPTION_DEFAULT_ROLE = 'sfme_default_role';
 
 	/**
 	 * Whether automatic user provisioning is enabled.
 	 */
-	const OPTION_USER_PROVISIONING = 'microsoft_entra_sso_user_provisioning';
+	const OPTION_USER_PROVISIONING = 'sfme_user_provisioning';
 
 	/**
 	 * Raw SAML federation metadata XML (imported from Entra).
 	 */
-	const OPTION_SAML_METADATA = 'microsoft_entra_sso_saml_metadata';
+	const OPTION_SAML_METADATA = 'sfme_saml_metadata';
 
 	/**
 	 * Maximum number of failed SSO login attempts before temporary lockout.
 	 */
-	const OPTION_RATE_LIMIT_MAX = 'microsoft_entra_sso_rate_limit_max';
+	const OPTION_RATE_LIMIT_MAX = 'sfme_rate_limit_max';
 
 	/**
 	 * Duration of a rate-limit lockout window in seconds.
 	 */
-	const OPTION_RATE_LIMIT_WINDOW = 'microsoft_entra_sso_rate_limit_window';
+	const OPTION_RATE_LIMIT_WINDOW = 'sfme_rate_limit_window';
 
 	// -------------------------------------------------------------------------
 	// Singleton
@@ -138,10 +138,10 @@ class Plugin {
 		if ( is_admin() ) {
 			add_action( 'admin_init', array( $this, 'on_admin_init' ) );
 			add_action( 'admin_menu', array( $this, 'on_admin_menu' ) );
-			add_action( 'admin_enqueue_scripts', array( 'MicrosoftEntraSSO\Admin\Settings_Page', 'enqueue_assets' ) );
-			add_action( 'admin_notices', array( 'MicrosoftEntraSSO\Admin\Admin_Notices', 'render_notices' ) );
-			add_action( 'wp_ajax_messo_import_metadata', array( 'MicrosoftEntraSSO\Admin\Settings_Page', 'handle_import_metadata' ) );
-			add_action( 'wp_ajax_messo_dismiss_notice', array( 'MicrosoftEntraSSO\Admin\Admin_Notices', 'handle_dismiss' ) );
+			add_action( 'admin_enqueue_scripts', array( 'SFME\Admin\Settings_Page', 'enqueue_assets' ) );
+			add_action( 'admin_notices', array( 'SFME\Admin\Admin_Notices', 'render_notices' ) );
+			add_action( 'wp_ajax_sfme_import_metadata', array( 'SFME\Admin\Settings_Page', 'handle_import_metadata' ) );
+			add_action( 'wp_ajax_sfme_dismiss_notice', array( 'SFME\Admin\Admin_Notices', 'handle_dismiss' ) );
 		}
 	}
 
@@ -158,7 +158,7 @@ class Plugin {
 		load_plugin_textdomain(
 			'sso-for-microsoft-entra',
 			false,
-			dirname( plugin_basename( MESSO_PLUGIN_FILE ) ) . '/languages'
+			dirname( plugin_basename( SFME_PLUGIN_FILE ) ) . '/languages'
 		);
 	}
 
@@ -173,7 +173,7 @@ class Plugin {
 	 */
 	public function on_init(): void {
 		// Register /sso/{slug} rewrite rule — matches login, callback, saml-acs, logout.
-		add_rewrite_rule( '^sso/([a-z-]+)/?$', 'index.php?messo_action=$matches[1]', 'top' );
+		add_rewrite_rule( '^sso/([a-z-]+)/?$', 'index.php?sfme_action=$matches[1]', 'top' );
 		add_filter( 'query_vars', array( $this, 'register_query_vars' ) );
 		add_action( 'template_redirect', array( $this, 'handle_sso_request' ) );
 	}
@@ -185,7 +185,7 @@ class Plugin {
 	 * @return string[] Modified query vars.
 	 */
 	public function register_query_vars( array $vars ): array {
-		$vars[] = 'messo_action';
+		$vars[] = 'sfme_action';
 		return $vars;
 	}
 
@@ -198,7 +198,7 @@ class Plugin {
 	 * @return void
 	 */
 	public function handle_sso_request(): void {
-		$action = get_query_var( 'messo_action', '' );
+		$action = get_query_var( 'sfme_action', '' );
 		if ( '' === $action ) {
 			return;
 		}
@@ -216,7 +216,7 @@ class Plugin {
 
 		// Set $_GET['action'] so Login_Handler::dispatch() works unchanged.
 		$_GET['action'] = $action_map[ $action ];
-		\MicrosoftEntraSSO\Login\Login_Handler::dispatch();
+		\SFME\Login\Login_Handler::dispatch();
 	}
 
 	/**
@@ -232,7 +232,7 @@ class Plugin {
 		// SSO action dispatch is now handled via /sso/* rewrite endpoints
 		// registered in on_init() — do NOT register Login_Handler::init() here
 		// to avoid double-dispatch and doubled attack surface (H-1).
-		\MicrosoftEntraSSO\Login\Login_Button::init();
+		\SFME\Login\Login_Button::init();
 	}
 
 	/**

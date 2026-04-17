@@ -6,7 +6,7 @@
  * the Plugins screen. Cleans up all persistent data the plugin stored so that
  * no orphaned rows remain in the database.
  *
- * @package MicrosoftEntraSSO
+ * @package SFME
  */
 
 // Guard: abort unless WordPress triggered this file during a real uninstall.
@@ -16,7 +16,7 @@ global $wpdb;
 
 // -------------------------------------------------------------------------
 // 1. Delete all plugin options
-// Matches any option whose name starts with "microsoft_entra_sso_".
+// Matches any option whose name starts with "sfme_".
 // -------------------------------------------------------------------------
 $wpdb->query(
 	"DELETE FROM {$wpdb->options}
@@ -25,7 +25,7 @@ $wpdb->query(
 
 // -------------------------------------------------------------------------
 // 2. Delete all user meta stored by this plugin
-// User_Meta keys are prefixed with "_messo_" (not "_microsoft_entra_sso_").
+// User_Meta keys are prefixed with "_sfme_" (not "_sfme_").
 // -------------------------------------------------------------------------
 $wpdb->query(
 	"DELETE FROM {$wpdb->usermeta}
@@ -35,7 +35,7 @@ $wpdb->query(
 // -------------------------------------------------------------------------
 // 3. Delete all transients used by this plugin
 // Transients are stored as options with the "_transient_" prefix; the
-// plugin namespaces its own transients under "_transient_messo_".
+// plugin namespaces its own transients under "_transient_sfme_".
 // -------------------------------------------------------------------------
 $wpdb->query(
 	"DELETE FROM {$wpdb->options}

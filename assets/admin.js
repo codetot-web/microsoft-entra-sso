@@ -7,30 +7,30 @@
  *  3. Client secret visibility toggle.
  *  4. Dismissible admin notices.
  *
- * @package MicrosoftEntraSSO
+ * @package SFME
  */
 
 ( function () {
 	'use strict';
 
 	/* -----------------------------------------------------------------------
-		Guard: messo_admin must be localised before this script runs.
+		Guard: sfme_admin must be localised before this script runs.
 		----------------------------------------------------------------------- */
-	if ( typeof messo_admin === 'undefined' ) {
+	if ( typeof sfme_admin === 'undefined' ) {
 		return;
 	}
 
-	var ajaxUrl = messo_admin.ajax_url;
-	var nonce   = messo_admin.nonce;
-	var strings = messo_admin.strings;
+	var ajaxUrl = sfme_admin.ajax_url;
+	var nonce   = sfme_admin.nonce;
+	var strings = sfme_admin.strings;
 
 	/* -----------------------------------------------------------------------
 		1. Metadata import
 		----------------------------------------------------------------------- */
 	function initMetadataImport() {
-		var btn    = document.getElementById( 'messo-import-metadata' );
-		var urlIn  = document.getElementById( 'messo_metadata_url' );
-		var status = document.getElementById( 'messo-import-status' );
+		var btn    = document.getElementById( 'sfme-import-metadata' );
+		var urlIn  = document.getElementById( 'sfme_metadata_url' );
+		var status = document.getElementById( 'sfme-import-status' );
 
 		if ( ! btn || ! urlIn || ! status ) {
 			return;
@@ -49,7 +49,7 @@
 				setStatus( status, strings.importing, false );
 
 				var body = new URLSearchParams();
-				body.append( 'action', 'messo_import_metadata' );
+				body.append( 'action', 'sfme_import_metadata' );
 				body.append( 'nonce',  nonce );
 				body.append( 'url',    url );
 
@@ -73,10 +73,10 @@
 								setStatus( status, data.data && data.data.message ? data.data.message : strings.import_done, false );
 								// Auto-populate connection fields extracted from the metadata URL.
 								if ( data.data ) {
-									fillFieldIfEmpty( 'microsoft_entra_sso_tenant_id', data.data.tenant_id );
-									fillFieldIfEmpty( 'microsoft_entra_sso_client_id', data.data.client_id );
+									fillFieldIfEmpty( 'sfme_tenant_id', data.data.tenant_id );
+									fillFieldIfEmpty( 'sfme_client_id', data.data.client_id );
 									// Switch protocol radio to SAML since metadata was imported.
-									selectRadio( 'microsoft_entra_sso_auth_protocol', 'saml' );
+									selectRadio( 'sfme_auth_protocol', 'saml' );
 								}
 						} else {
 							var msg = data.data && data.data.message ? data.data.message : strings.import_error;
@@ -150,10 +150,10 @@
 		2. Role-mapping rows — add / remove
 		----------------------------------------------------------------------- */
 	function initRoleMapping() {
-		var container = document.getElementById( 'messo-role-mapping' );
-		var addBtn    = document.getElementById( 'messo-add-role-mapping' );
-		var tbody     = document.getElementById( 'messo-role-mapping-rows' );
-		var template  = document.getElementById( 'messo-role-row-template' );
+		var container = document.getElementById( 'sfme-role-mapping' );
+		var addBtn    = document.getElementById( 'sfme-add-role-mapping' );
+		var tbody     = document.getElementById( 'sfme-role-mapping-rows' );
+		var template  = document.getElementById( 'sfme-role-row-template' );
 
 		if ( ! container || ! addBtn || ! tbody || ! template ) {
 			return;
@@ -164,8 +164,8 @@
 			'click',
 			function ( event ) {
 				var target = event.target;
-				if ( target && target.classList.contains( 'messo-remove-row' ) ) {
-					var row = target.closest( '.messo-role-mapping-row' );
+				if ( target && target.classList.contains( 'sfme-remove-row' ) ) {
+					var row = target.closest( '.sfme-role-mapping-row' );
 					if ( row ) {
 						row.parentNode.removeChild( row );
 					}
@@ -190,7 +190,7 @@
 			'click',
 			function ( event ) {
 				var btn = event.target;
-				if ( ! btn || ! btn.classList.contains( 'messo-toggle-secret' ) ) {
+				if ( ! btn || ! btn.classList.contains( 'sfme-toggle-secret' ) ) {
 					return;
 				}
 
@@ -228,7 +228,7 @@
 					return;
 				}
 
-				var notice = btn.closest( '.messo-dismissible' );
+				var notice = btn.closest( '.sfme-dismissible' );
 				if ( ! notice ) {
 					return;
 				}
@@ -241,7 +241,7 @@
 				}
 
 				var body = new URLSearchParams();
-				body.append( 'action',    'messo_dismiss_notice' );
+				body.append( 'action',    'sfme_dismiss_notice' );
 				body.append( 'nonce',     dismissNonce );
 				body.append( 'notice_id', noticeId );
 

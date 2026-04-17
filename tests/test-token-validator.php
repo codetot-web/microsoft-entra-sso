@@ -1,15 +1,15 @@
 <?php
 /**
- * Unit tests for MicrosoftEntraSSO\Auth\Token_Validator.
+ * Unit tests for SFME\Auth\Token_Validator.
  *
  * These tests focus on the pure-PHP logic of decode_jwt() and claim
  * validation. Tests that require live network access (JWKS fetching,
  * signature verification) are out of scope for the unit suite.
  *
- * @package MicrosoftEntraSSO\Tests
+ * @package SFME\Tests
  */
 
-use MicrosoftEntraSSO\Auth\Token_Validator;
+use SFME\Auth\Token_Validator;
 use PHPUnit\Framework\TestCase;
 
 /**

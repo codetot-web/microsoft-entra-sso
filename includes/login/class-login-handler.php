@@ -11,20 +11,20 @@
  * Security notes throughout this file explain every decision that affects the
  * authentication security boundary.
  *
- * @package MicrosoftEntraSSO\Login
+ * @package SFME\Login
  */
 
-namespace MicrosoftEntraSSO\Login;
+namespace SFME\Login;
 
 defined( 'ABSPATH' ) || exit;
 
-use MicrosoftEntraSSO\Plugin;
-use MicrosoftEntraSSO\Auth\OIDC_Client;
-use MicrosoftEntraSSO\Auth\SAML_Client;
-use MicrosoftEntraSSO\Security\Rate_Limiter;
-use MicrosoftEntraSSO\Security\State_Manager;
-use MicrosoftEntraSSO\User\User_Handler;
-use MicrosoftEntraSSO\User\User_Meta;
+use SFME\Plugin;
+use SFME\Auth\OIDC_Client;
+use SFME\Auth\SAML_Client;
+use SFME\Security\Rate_Limiter;
+use SFME\Security\State_Manager;
+use SFME\User\User_Handler;
+use SFME\User\User_Meta;
 
 /**
  * Class Login_Handler
@@ -138,7 +138,7 @@ class Login_Handler {
 		if ( is_wp_error( $auth_url ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging
-				error_log( 'MicrosoftEntraSSO build URL error [' . $protocol . ']: ' . $auth_url->get_error_code() . ' — ' . $auth_url->get_error_message() );
+				error_log( 'SFME build URL error [' . $protocol . ']: ' . $auth_url->get_error_code() . ' — ' . $auth_url->get_error_message() );
 			}
 			self::redirect_with_error( 'sso_build_url_failed' );
 			return;
@@ -212,7 +212,7 @@ class Login_Handler {
 			// Log the internal error without exposing details to the browser.
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled
-				error_log( 'MicrosoftEntraSSO OIDC callback error: ' . $claims->get_error_message() );
+				error_log( 'SFME OIDC callback error: ' . $claims->get_error_message() );
 			}
 			self::redirect_with_error( 'oidc_callback_failed' );
 			return;
@@ -282,7 +282,7 @@ class Login_Handler {
 		if ( is_wp_error( $claims ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled
-				error_log( 'MicrosoftEntraSSO SAML ACS error: ' . $claims->get_error_message() );
+				error_log( 'SFME SAML ACS error: ' . $claims->get_error_message() );
 			}
 			self::redirect_with_error( 'saml_response_failed' );
 			return;
@@ -386,7 +386,7 @@ class Login_Handler {
 
 		// Allow a local-login bypass so admins can recover access if SSO breaks.
 		// The bypass requires the ?local=1 query parameter.
-		$allow_local = (bool) $plugin->get_option( 'microsoft_entra_sso_allow_local_login', false );
+		$allow_local = (bool) $plugin->get_option( 'sfme_allow_local_login', false );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( $allow_local && isset( $_GET['local'] ) && '1' === $_GET['local'] ) {
 			return;
@@ -423,7 +423,7 @@ class Login_Handler {
 		if ( is_wp_error( $user_id ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled
-				error_log( 'MicrosoftEntraSSO user provisioning error: ' . $user_id->get_error_message() );
+				error_log( 'SFME user provisioning error: ' . $user_id->get_error_message() );
 			}
 			self::redirect_with_error( 'user_provision_failed' );
 			return;
@@ -452,7 +452,7 @@ class Login_Handler {
 		 * @param array  $claims   Normalised IdP claims.
 		 * @param string $protocol Authentication protocol used ('oidc' or 'saml').
 		 */
-		do_action( 'microsoft_entra_sso_user_authenticated', $user_id, $claims, $protocol );
+		do_action( 'sfme_user_authenticated', $user_id, $claims, $protocol );
 
 		// Determine redirect destination.
 		$redirect_to = self::get_redirect_url();

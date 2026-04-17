@@ -9,10 +9,10 @@
  *  3. Create a new WP user when auto-provisioning is enabled.
  *  4. Return a WP_Error when no user can be resolved and creation is off.
  *
- * @package MicrosoftEntraSSO\User
+ * @package SFME\User
  */
 
-namespace MicrosoftEntraSSO\User;
+namespace SFME\User;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -53,8 +53,8 @@ class User_Handler {
 
 		// 3. Create when auto-provisioning is on.
 		if ( ! $user_id ) {
-			$auto_create = \MicrosoftEntraSSO\Plugin::get_instance()->get_option(
-				\MicrosoftEntraSSO\Plugin::OPTION_USER_PROVISIONING,
+			$auto_create = \SFME\Plugin::get_instance()->get_option(
+				\SFME\Plugin::OPTION_USER_PROVISIONING,
 				false
 			);
 
@@ -67,7 +67,7 @@ class User_Handler {
 			} else {
 				// 4. Auto-create disabled — cannot log this user in.
 				return new \WP_Error(
-					'messo_user_not_found',
+					'sfme_user_not_found',
 					esc_html__(
 						'No WordPress account was found for your Microsoft identity and automatic user creation is disabled. Please contact your site administrator.',
 						'sso-for-microsoft-entra'
@@ -101,7 +101,7 @@ class User_Handler {
 
 		if ( ! $email ) {
 			return new \WP_Error(
-				'messo_no_email',
+				'sfme_no_email',
 				esc_html__(
 					'The Microsoft identity does not include a valid email address. Cannot create a WordPress account.',
 					'sso-for-microsoft-entra'

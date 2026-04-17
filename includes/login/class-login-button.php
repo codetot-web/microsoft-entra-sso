@@ -2,14 +2,14 @@
 /**
  * Renders the "Sign in with Microsoft" button on the WordPress login form.
  *
- * @package MicrosoftEntraSSO\Login
+ * @package SFME\Login
  */
 
-namespace MicrosoftEntraSSO\Login;
+namespace SFME\Login;
 
 defined( 'ABSPATH' ) || exit;
 
-use MicrosoftEntraSSO\Plugin;
+use SFME\Plugin;
 
 /**
  * Class Login_Button
@@ -56,16 +56,16 @@ class Login_Button {
 		}
 
 		$button_text  = (string) $plugin->get_option(
-			'microsoft_entra_sso_button_text',
+			'sfme_button_text',
 			__( 'Sign in with Microsoft', 'sso-for-microsoft-entra' )
 		);
-		$button_style = (string) $plugin->get_option( 'microsoft_entra_sso_button_style', 'default' );
-		$allow_local  = (bool) $plugin->get_option( 'microsoft_entra_sso_allow_local_login', false );
+		$button_style = (string) $plugin->get_option( 'sfme_button_style', 'default' );
+		$allow_local  = (bool) $plugin->get_option( 'sfme_allow_local_login', false );
 
 		$sso_url   = esc_url( home_url( '/sso/login' ) );
 		$local_url = esc_url( add_query_arg( 'local', '1', wp_login_url() ) );
 
-		$template = MESSO_PLUGIN_DIR . 'templates/login-button.php';
+		$template = SFME_PLUGIN_DIR . 'templates/login-button.php';
 
 		if ( file_exists( $template ) ) {
 			// Extract variables into template scope.
@@ -120,7 +120,7 @@ class Login_Button {
 	 */
 	private static function get_inline_css(): string {
 		return '
-.messo-divider {
+.sfme-divider {
 	display: flex;
 	align-items: center;
 	text-align: center;
@@ -128,20 +128,20 @@ class Login_Button {
 	color: #646970;
 	font-size: 13px;
 }
-.messo-divider::before,
-.messo-divider::after {
+.sfme-divider::before,
+.sfme-divider::after {
 	content: "";
 	flex: 1;
 	border-bottom: 1px solid #dcdcde;
 }
-.messo-divider::before { margin-right: 8px; }
-.messo-divider::after  { margin-left:  8px; }
+.sfme-divider::before { margin-right: 8px; }
+.sfme-divider::after  { margin-left:  8px; }
 
-.messo-btn-wrap {
+.sfme-btn-wrap {
 	margin-bottom: 12px;
 }
 
-.messo-btn {
+.sfme-btn {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -161,52 +161,52 @@ class Login_Button {
 }
 
 /* Default / light style */
-.messo-btn,
-.messo-btn-light {
+.sfme-btn,
+.sfme-btn-light {
 	background: #ffffff;
 	color: #2F2F2F;
 	border-color: #2F2F2F;
 }
-.messo-btn:hover,
-.messo-btn-light:hover {
+.sfme-btn:hover,
+.sfme-btn-light:hover {
 	background: #f3f2f1;
 	color: #2F2F2F;
 }
-.messo-btn:focus,
-.messo-btn-light:focus {
+.sfme-btn:focus,
+.sfme-btn-light:focus {
 	outline: 2px solid #0078d4;
 	outline-offset: 2px;
 }
 
 /* Dark style */
-.messo-btn-dark {
+.sfme-btn-dark {
 	background: #2F2F2F;
 	color: #ffffff;
 	border-color: #2F2F2F;
 }
-.messo-btn-dark:hover {
+.sfme-btn-dark:hover {
 	background: #1a1a1a;
 	color: #ffffff;
 }
-.messo-btn-dark:focus {
+.sfme-btn-dark:focus {
 	outline: 2px solid #0078d4;
 	outline-offset: 2px;
 }
 
-.messo-btn svg {
+.sfme-btn svg {
 	flex-shrink: 0;
 }
 
-.messo-local-login {
+.sfme-local-login {
 	text-align: center;
 	margin-top: 8px;
 	font-size: 12px;
 }
-.messo-local-login a {
+.sfme-local-login a {
 	color: #646970;
 	text-decoration: underline;
 }
-.messo-local-login a:hover {
+.sfme-local-login a:hover {
 	color: #1d2327;
 }
 		';

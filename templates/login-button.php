@@ -9,7 +9,7 @@
  *   string $sso_url      — Already-escaped URL for the SSO initiation action.
  *   string $local_url    — Already-escaped URL for the local login bypass.
  *
- * @package MicrosoftEntraSSO
+ * @package SFME
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +17,11 @@ defined( 'ABSPATH' ) || exit;
 // Map setting value to CSS class. Unknown values fall back to 'default'.
 $valid_styles  = array( 'default', 'dark', 'light' );
 $style_class   = in_array( $button_style, $valid_styles, true ) ? $button_style : 'default';
-$btn_css_class = ( 'dark' === $style_class ) ? 'messo-btn messo-btn-dark' : 'messo-btn messo-btn-light';
+$btn_css_class = ( 'dark' === $style_class ) ? 'sfme-btn sfme-btn-dark' : 'sfme-btn sfme-btn-light';
 ?>
-<div class="messo-divider"><?php esc_html_e( 'Or', 'sso-for-microsoft-entra' ); ?></div>
+<div class="sfme-divider"><?php esc_html_e( 'Or', 'sso-for-microsoft-entra' ); ?></div>
 
-<div class="messo-btn-wrap">
+<div class="sfme-btn-wrap">
 	<a href="<?php echo esc_url( $sso_url ); // URL already validated by Login_Button::render(). ?>"
 		class="<?php echo esc_attr( $btn_css_class ); ?>"
 		role="button"
@@ -59,7 +59,7 @@ $btn_css_class = ( 'dark' === $style_class ) ? 'messo-btn messo-btn-dark' : 'mes
 </div>
 
 <?php if ( $allow_local ) : ?>
-<div class="messo-local-login">
+<div class="sfme-local-login">
 	<a href="<?php echo esc_url( $local_url ); // URL already validated by Login_Button::render(). ?>">
 		<?php esc_html_e( 'Use local login instead', 'sso-for-microsoft-entra' ); ?>
 	</a>

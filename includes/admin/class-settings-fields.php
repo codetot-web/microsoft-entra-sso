@@ -5,10 +5,10 @@
  * All option keys are derived from Plugin::OPTION_* constants. Validation
  * and sanitization logic lives here so class-settings-page.php stays lean.
  *
- * @package MicrosoftEntraSSO\Admin
+ * @package SFME\Admin
  */
 
-namespace MicrosoftEntraSSO\Admin;
+namespace SFME\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -39,25 +39,25 @@ class Settings_Fields {
 	public static function connection_fields(): array {
 		return array(
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_TENANT_ID,
+				'id'          => \SFME\Plugin::OPTION_TENANT_ID,
 				'label'       => __( 'Tenant ID', 'sso-for-microsoft-entra' ),
 				'type'        => 'text',
 				'description' => __( 'The Directory (tenant) ID from your Azure app registration. Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID,
+				'id'          => \SFME\Plugin::OPTION_CLIENT_ID,
 				'label'       => __( 'Client ID', 'sso-for-microsoft-entra' ),
 				'type'        => 'text',
 				'description' => __( 'The Application (client) ID from your Azure app registration.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_SECRET,
+				'id'          => \SFME\Plugin::OPTION_CLIENT_SECRET,
 				'label'       => __( 'Client Secret', 'sso-for-microsoft-entra' ),
 				'type'        => 'password',
 				'description' => __( 'The client secret value. Stored encrypted in the database. Leave blank to keep the existing secret.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => 'microsoft_entra_sso_redirect_uri',
+				'id'          => 'sfme_redirect_uri',
 				'label'       => __( 'Redirect URI', 'sso-for-microsoft-entra' ),
 				'type'        => 'readonly',
 				'description' => __( 'Add this URL to the "Redirect URIs" list in your Azure app registration.', 'sso-for-microsoft-entra' ),
@@ -73,7 +73,7 @@ class Settings_Fields {
 	public static function authentication_fields(): array {
 		return array(
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_AUTH_PROTOCOL,
+				'id'          => \SFME\Plugin::OPTION_AUTH_PROTOCOL,
 				'label'       => __( 'Authentication Protocol', 'sso-for-microsoft-entra' ),
 				'type'        => 'radio',
 				'options'     => array(
@@ -84,13 +84,13 @@ class Settings_Fields {
 				'description' => __( 'OIDC is recommended for most setups. SAML requires federation metadata.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_AUTO_REDIRECT,
+				'id'          => \SFME\Plugin::OPTION_AUTO_REDIRECT,
 				'label'       => __( 'Force SSO', 'sso-for-microsoft-entra' ),
 				'type'        => 'checkbox',
 				'description' => __( 'Redirect all login attempts directly to Microsoft. Disables the standard WordPress login form.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => 'microsoft_entra_sso_allow_local_login',
+				'id'          => 'sfme_allow_local_login',
 				'label'       => __( 'Allow Local Login', 'sso-for-microsoft-entra' ),
 				'type'        => 'checkbox',
 				'description' => __( 'When Force SSO is enabled, still allow users with the administrator role to log in locally via wp-login.php.', 'sso-for-microsoft-entra' ),
@@ -106,19 +106,19 @@ class Settings_Fields {
 	public static function provisioning_fields(): array {
 		return array(
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_USER_PROVISIONING,
+				'id'          => \SFME\Plugin::OPTION_USER_PROVISIONING,
 				'label'       => __( 'Auto-Create Users', 'sso-for-microsoft-entra' ),
 				'type'        => 'checkbox',
 				'description' => __( 'Automatically create a WordPress account for users who authenticate successfully but do not yet have an account.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_DEFAULT_ROLE,
+				'id'          => \SFME\Plugin::OPTION_DEFAULT_ROLE,
 				'label'       => __( 'Default Role', 'sso-for-microsoft-entra' ),
 				'type'        => 'select_roles',
 				'description' => __( 'Role assigned to newly created users when no role mapping matches.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_ROLE_MAP,
+				'id'          => \SFME\Plugin::OPTION_ROLE_MAP,
 				'label'       => __( 'Role Mapping', 'sso-for-microsoft-entra' ),
 				'type'        => 'role_mapping',
 				'description' => __( 'Map Entra group Object IDs to WordPress roles. First matching group wins.', 'sso-for-microsoft-entra' ),
@@ -134,14 +134,14 @@ class Settings_Fields {
 	public static function customization_fields(): array {
 		return array(
 			array(
-				'id'          => 'microsoft_entra_sso_button_text',
+				'id'          => 'sfme_button_text',
 				'label'       => __( 'Button Text', 'sso-for-microsoft-entra' ),
 				'type'        => 'text',
 				'default'     => __( 'Sign in with Microsoft', 'sso-for-microsoft-entra' ),
 				'description' => __( 'Label displayed on the SSO login button on the WordPress login page.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => 'microsoft_entra_sso_button_style',
+				'id'          => 'sfme_button_style',
 				'label'       => __( 'Button Style', 'sso-for-microsoft-entra' ),
 				'type'        => 'select',
 				'options'     => array(
@@ -163,7 +163,7 @@ class Settings_Fields {
 	public static function rate_limiting_fields(): array {
 		return array(
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_RATE_LIMIT_MAX,
+				'id'          => \SFME\Plugin::OPTION_RATE_LIMIT_MAX,
 				'label'       => __( 'Max Attempts', 'sso-for-microsoft-entra' ),
 				'type'        => 'number',
 				'min'         => '1',
@@ -171,7 +171,7 @@ class Settings_Fields {
 				'description' => __( 'Maximum login attempts per IP before lockout. Default: 5.', 'sso-for-microsoft-entra' ),
 			),
 			array(
-				'id'          => \MicrosoftEntraSSO\Plugin::OPTION_RATE_LIMIT_WINDOW,
+				'id'          => \SFME\Plugin::OPTION_RATE_LIMIT_WINDOW,
 				'label'       => __( 'Window (seconds)', 'sso-for-microsoft-entra' ),
 				'type'        => 'number',
 				'min'         => '60',

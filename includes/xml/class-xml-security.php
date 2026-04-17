@@ -8,10 +8,10 @@
  * network access is prevented via LIBXML_NONET, and oversized payloads are
  * rejected before parsing begins.
  *
- * @package MicrosoftEntraSSO\XML
+ * @package SFME\XML
  */
 
-namespace MicrosoftEntraSSO\XML;
+namespace SFME\XML;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -147,7 +147,7 @@ class XML_Security {
 			$url,
 			array(
 				'timeout'    => 10,
-				'user-agent' => 'MicrosoftEntraSSO/' . MESSO_VERSION . '; WordPress/' . get_bloginfo( 'version' ),
+				'user-agent' => 'SFME/' . SFME_VERSION . '; WordPress/' . get_bloginfo( 'version' ),
 			)
 		);
 

@@ -17,17 +17,17 @@
  *  - Claims are normalised to match OIDC claim names so User_Handler works
  *    identically regardless of the authentication protocol.
  *
- * @package MicrosoftEntraSSO\Auth
+ * @package SFME\Auth
  */
 
-namespace MicrosoftEntraSSO\Auth;
+namespace SFME\Auth;
 
 defined( 'ABSPATH' ) || exit;
 
-use MicrosoftEntraSSO\Plugin;
-use MicrosoftEntraSSO\Security\State_Manager;
-use MicrosoftEntraSSO\XML\XML_Security;
-use MicrosoftEntraSSO\XML\Metadata_Parser;
+use SFME\Plugin;
+use SFME\Security\State_Manager;
+use SFME\XML\XML_Security;
+use SFME\XML\Metadata_Parser;
 
 /**
  * Class SAML_Client
@@ -151,7 +151,7 @@ class SAML_Client {
 		} catch ( \Exception $e ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'MicrosoftEntraSSO SAML parse error: ' . $e->getMessage() );
+				error_log( 'SFME SAML parse error: ' . $e->getMessage() );
 			}
 			return new \WP_Error(
 				'saml_parse_failed',
@@ -222,7 +222,7 @@ class SAML_Client {
 		if ( ! $signature_valid ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'MicrosoftEntraSSO SAML signature verification failed (LightSaml)' );
+				error_log( 'SFME SAML signature verification failed (LightSaml)' );
 			}
 			return new \WP_Error(
 				'saml_invalid_signature',
@@ -311,8 +311,8 @@ class SAML_Client {
 		// to the Application ID URI (api://{client_id}) or the client_id itself.
 		// Using home_url() causes AADSTS700016 because Azure cannot find an
 		// application registered with that identifier.
-		$plugin    = \MicrosoftEntraSSO\Plugin::get_instance();
-		$client_id = (string) $plugin->get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID, '' );
+		$plugin    = \SFME\Plugin::get_instance();
+		$client_id = (string) $plugin->get_option( \SFME\Plugin::OPTION_CLIENT_ID, '' );
 		$issuer    = '' !== $client_id ? $client_id : esc_url( home_url() );
 
 		// Minimal AuthnRequest per SAML 2.0 core spec §3.4.
@@ -384,7 +384,7 @@ class SAML_Client {
 		} catch ( \Exception $e ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'MicrosoftEntraSSO SAML reference validation error: ' . $e->getMessage() );
+				error_log( 'SFME SAML reference validation error: ' . $e->getMessage() );
 			}
 			return false;
 		}
@@ -416,7 +416,7 @@ class SAML_Client {
 		} catch ( \Exception $e ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'MicrosoftEntraSSO SAML signature verify error: ' . $e->getMessage() );
+				error_log( 'SFME SAML signature verify error: ' . $e->getMessage() );
 			}
 			return false;
 		}
@@ -513,8 +513,8 @@ class SAML_Client {
 				// prevent an assertion issued for another SP from being accepted.
 				// Accept the IdP entity_id, home_url(), or client_id as valid audiences
 				// since Entra may use the client_id as the audience value.
-				$client_id = (string) \MicrosoftEntraSSO\Plugin::get_instance()->get_option(
-					\MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID,
+				$client_id = (string) \SFME\Plugin::get_instance()->get_option(
+					\SFME\Plugin::OPTION_CLIENT_ID,
 					''
 				);
 				if ( $entity_id === $audience || home_url() === $audience || $client_id === $audience ) {
@@ -674,7 +674,7 @@ class SAML_Client {
 		}
 
 		// Fall back to individual option values when no metadata XML is stored.
-		$sso_url = (string) $plugin->get_option( 'microsoft_entra_sso_saml_sso_url', '' );
+		$sso_url = (string) $plugin->get_option( 'sfme_saml_sso_url', '' );
 
 		if ( '' === $sso_url ) {
 			return new \WP_Error(
@@ -683,7 +683,7 @@ class SAML_Client {
 			);
 		}
 
-		$certificate = (string) $plugin->get_option( 'microsoft_entra_sso_saml_certificate', '' );
+		$certificate = (string) $plugin->get_option( 'sfme_saml_certificate', '' );
 
 		if ( '' === $certificate ) {
 			return new \WP_Error(

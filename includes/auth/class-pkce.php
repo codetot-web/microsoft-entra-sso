@@ -7,10 +7,10 @@
  * interception attacks because an attacker who steals the authorization code
  * cannot exchange it without also possessing the verifier.
  *
- * @package MicrosoftEntraSSO\Auth
+ * @package SFME\Auth
  */
 
-namespace MicrosoftEntraSSO\Auth;
+namespace SFME\Auth;
 
 defined( 'ABSPATH' ) || exit;
 

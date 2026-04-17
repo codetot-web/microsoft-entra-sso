@@ -6,10 +6,10 @@
  * surfaces dismissible admin notices to help administrators resolve issues
  * before the SSO integration is used in production.
  *
- * @package MicrosoftEntraSSO\Admin
+ * @package SFME\Admin
  */
 
-namespace MicrosoftEntraSSO\Admin;
+namespace SFME\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -26,7 +26,7 @@ class Admin_Notices {
 	 *
 	 * @var string
 	 */
-	const DISMISSED_META_PREFIX = 'messo_notice_dismissed_';
+	const DISMISSED_META_PREFIX = 'sfme_notice_dismissed_';
 
 	// -------------------------------------------------------------------------
 	// Bootstrap
@@ -39,7 +39,7 @@ class Admin_Notices {
 	 */
 	public static function register(): void {
 		add_action( 'admin_notices', array( self::class, 'render_notices' ) );
-		// L3: wp_ajax_messo_dismiss_notice is already registered by Plugin::init().
+		// L3: wp_ajax_sfme_dismiss_notice is already registered by Plugin::init().
 		// Do not add it here to avoid a duplicate hook that fires the handler twice.
 	}
 
@@ -57,7 +57,7 @@ class Admin_Notices {
 			return;
 		}
 
-		$plugin = \MicrosoftEntraSSO\Plugin::get_instance();
+		$plugin = \SFME\Plugin::get_instance();
 
 		// Notice: encryption unavailable.
 		$no_sodium  = ! function_exists( 'sodium_crypto_secretbox' );
@@ -75,15 +75,15 @@ class Admin_Notices {
 		// Notice: missing required fields.
 		$missing = array();
 
-		if ( ! $plugin->get_option( \MicrosoftEntraSSO\Plugin::OPTION_TENANT_ID ) ) {
+		if ( ! $plugin->get_option( \SFME\Plugin::OPTION_TENANT_ID ) ) {
 			$missing[] = __( 'Tenant ID', 'sso-for-microsoft-entra' );
 		}
 
-		if ( ! $plugin->get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_ID ) ) {
+		if ( ! $plugin->get_option( \SFME\Plugin::OPTION_CLIENT_ID ) ) {
 			$missing[] = __( 'Client ID', 'sso-for-microsoft-entra' );
 		}
 
-		if ( ! $plugin->get_option( \MicrosoftEntraSSO\Plugin::OPTION_CLIENT_SECRET ) ) {
+		if ( ! $plugin->get_option( \SFME\Plugin::OPTION_CLIENT_SECRET ) ) {
 			$missing[] = __( 'Client Secret', 'sso-for-microsoft-entra' );
 		}
 
@@ -115,7 +115,7 @@ class Admin_Notices {
 	 * @return void
 	 */
 	public static function handle_dismiss(): void {
-		check_ajax_referer( 'messo_dismiss_notice', 'nonce' );
+		check_ajax_referer( 'sfme_dismiss_notice', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( '', '', array( 'response' => 403 ) );
@@ -166,14 +166,14 @@ class Admin_Notices {
 	private static function render_notice( string $notice_id, string $type, string $message, bool $dismissible ): void {
 		$class = 'notice notice-' . esc_attr( $type );
 		if ( $dismissible ) {
-			$class .= ' is-dismissible messo-dismissible';
+			$class .= ' is-dismissible sfme-dismissible';
 		}
 
 		printf(
 			'<div class="%s" data-notice-id="%s" data-nonce="%s"><p>%s</p></div>',
 			esc_attr( $class ),
 			esc_attr( $notice_id ),
-			esc_attr( wp_create_nonce( 'messo_dismiss_notice' ) ),
+			esc_attr( wp_create_nonce( 'sfme_dismiss_notice' ) ),
 			wp_kses(
 				$message,
 				array(

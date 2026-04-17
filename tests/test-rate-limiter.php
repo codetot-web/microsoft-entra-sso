@@ -1,11 +1,11 @@
 <?php
 /**
- * Unit tests for MicrosoftEntraSSO\Security\Rate_Limiter.
+ * Unit tests for SFME\Security\Rate_Limiter.
  *
- * @package MicrosoftEntraSSO\Tests
+ * @package SFME\Tests
  */
 
-use MicrosoftEntraSSO\Security\Rate_Limiter;
+use SFME\Security\Rate_Limiter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -27,7 +27,7 @@ class Test_Rate_Limiter extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$GLOBALS['_messo_transients'] = array();
+		$GLOBALS['_sfme_transients'] = array();
 	}
 
 	/**

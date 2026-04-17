@@ -6,10 +6,10 @@
  * TTL. Every token is single-use: validation deletes the transient so that
  * replay attacks and state-fixation attacks cannot succeed.
  *
- * @package MicrosoftEntraSSO\Security
+ * @package SFME\Security
  */
 
-namespace MicrosoftEntraSSO\Security;
+namespace SFME\Security;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,9 +17,9 @@ defined( 'ABSPATH' ) || exit;
  * Manages OAuth state tokens, OIDC nonces, and PKCE verifiers.
  *
  * Transient key prefixes:
- *   messo_state_{state}        – OAuth state token
- *   messo_nonce_{nonce}        – OIDC nonce
- *   messo_pkce_{sha256(state)} – PKCE code verifier keyed by state hash
+ *   sfme_state_{state}        – OAuth state token
+ *   sfme_nonce_{nonce}        – OIDC nonce
+ *   sfme_pkce_{sha256(state)} – PKCE code verifier keyed by state hash
  */
 class State_Manager {
 
@@ -28,21 +28,21 @@ class State_Manager {
 	 *
 	 * @var string
 	 */
-	const PREFIX_STATE = 'messo_state_';
+	const PREFIX_STATE = 'sfme_state_';
 
 	/**
 	 * Transient prefix for OIDC nonces.
 	 *
 	 * @var string
 	 */
-	const PREFIX_NONCE = 'messo_nonce_';
+	const PREFIX_NONCE = 'sfme_nonce_';
 
 	/**
 	 * Transient prefix for PKCE code verifiers.
 	 *
 	 * @var string
 	 */
-	const PREFIX_PKCE = 'messo_pkce_';
+	const PREFIX_PKCE = 'sfme_pkce_';
 
 	/**
 	 * Token time-to-live in seconds (10 minutes).
@@ -216,7 +216,7 @@ class State_Manager {
 	 *
 	 * @param string $state The OAuth state token.
 	 *
-	 * @return string Transient key of the form `messo_pkce_{hex_hash}`.
+	 * @return string Transient key of the form `sfme_pkce_{hex_hash}`.
 	 */
 	private static function pkce_key( string $state ): string {
 		return self::PREFIX_PKCE . hash( 'sha256', $state );

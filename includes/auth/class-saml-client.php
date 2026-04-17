@@ -404,7 +404,7 @@ class SAML_Client {
 		// Detect the actual algorithm used in the signature.
 		try {
 			\RobRichards\XMLSecLibs\XMLSecEnc::staticLocateKeyInfo( $key, $sig_node );
-		} catch ( \Exception $e ) {
+		} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Intentional fallback to SHA256.
 			// Key info extraction failed — continue with SHA256 default.
 		}
 
@@ -442,7 +442,7 @@ class SAML_Client {
 	private static function validate_conditions( \DOMElement $assertion, string $entity_id ) {
 		// Security (C-1): query relative to the verified assertion element,
 		// not the entire document, to prevent XSW attacks.
-		$xpath = new \DOMXPath( $assertion->ownerDocument );
+		$xpath = new \DOMXPath( $assertion->ownerDocument // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHP DOM API property. );
 		$xpath->registerNamespace( 'saml', self::NS_SAML_ASSERTION );
 
 		$conditions_nodes = $xpath->query( 'saml:Conditions', $assertion );
@@ -559,7 +559,7 @@ class SAML_Client {
 	private static function extract_claims( \DOMElement $assertion ) {
 		// Security (C-1): query relative to the verified assertion element,
 		// not the entire document, to prevent XSW attacks.
-		$xpath = new \DOMXPath( $assertion->ownerDocument );
+		$xpath = new \DOMXPath( $assertion->ownerDocument // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHP DOM API property. );
 		$xpath->registerNamespace( 'saml', self::NS_SAML_ASSERTION );
 
 		$claims = array();

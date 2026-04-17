@@ -607,6 +607,11 @@ class Settings_Page {
 		echo '<p>' . esc_html__( 'Control how many SSO login attempts are allowed per IP address within a time window.', 'sso-for-microsoft-entra' ) . '</p>';
 	}
 
+	/**
+	 * Render intro text for the Metadata Import section.
+	 *
+	 * @return void
+	 */
 	public static function render_section_metadata(): void {
 		echo '<p>' . esc_html__( 'Import SAML federation metadata from your Entra app federation metadata URL. Only required when using the SAML 2.0 protocol.', 'sso-for-microsoft-entra' ) . '</p>';
 	}
@@ -887,7 +892,7 @@ class Settings_Page {
 			return $result;
 		}
 
-		// Extract tenant ID from path: /tenant-guid/federationmetadata/...
+		// Extract tenant ID from path: /tenant-guid/federationmetadata/etc.
 		if ( ! empty( $parsed['path'] ) ) {
 			if ( preg_match( '#/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/#i', $parsed['path'], $matches ) ) {
 				$result['tenant_id'] = strtolower( $matches[1] );

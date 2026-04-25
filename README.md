@@ -62,6 +62,14 @@ Click the **Help** button (top-right) on the settings page for step-by-step guid
 - **SAML Setup** — Entity ID, ACS URL, NinjaFirewall notes
 - **Troubleshooting** — Common errors and fixes
 
+## Security Hardening (v2.1.0)
+
+- SAML assertions must be individually signed — response-level-only signatures are rejected (XSW prevention)
+- Assertion conditions (NotBefore, NotOnOrAfter, AudienceRestriction) are strictly enforced
+- Metadata import is restricted to known Microsoft Entra hosts with private IP blocking
+- `administrator` role is blocked as the SSO default role
+- Default role for new SSO users is `subscriber`
+
 ## NinjaFirewall Compatibility
 
 If you use NinjaFirewall, create a `.htninja` file in your document root:

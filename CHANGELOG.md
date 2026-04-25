@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.1.0 (2026-04-25)
+
+### Security
+
+- **[Critical]** Fix SAML XML Signature Wrapping (XSW) — require assertion-level signature, reject response-only signatures that allow forged assertions to bypass authentication (#5)
+- **[Critical]** Guard against privilege escalation via SSO default role — block `administrator` as default role in settings sanitization (#6)
+- **[Medium]** Enforce SAML assertion conditions (NotBefore, NotOnOrAfter, AudienceRestriction) — prevents replay attacks with expired assertions (#7)
+- **[Medium]** Add SSRF protection to SAML metadata import — host allowlist (Entra endpoints only) and private IP blocking (#8)
+
+### Changed
+
+- Default role for SSO auto-provisioning now defaults to `subscriber` (was `editor` in some deployments)
+- Metadata import restricted to known Microsoft Entra hosts: `login.microsoftonline.com`, `login.windows.net`, `login.microsoftonline.us`, `login.chinacloudapi.cn`
+
 ## 2.0.3 (2026-04-17)
 
 ### Fixed

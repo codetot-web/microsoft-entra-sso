@@ -262,7 +262,7 @@ class SAML_Client {
 	 * replay attacks and cross-SP assertion injection.
 	 *
 	 * @param \LightSaml\Model\Assertion\Assertion $assertion LightSaml assertion.
-	 * @param array                                 $config    SAML config with entity_id.
+	 * @param array                                $config    SAML config with entity_id.
 	 * @return true|\WP_Error True when conditions pass, WP_Error otherwise.
 	 */
 	private static function validate_conditions_lightsaml( \LightSaml\Model\Assertion\Assertion $assertion, array $config ) {

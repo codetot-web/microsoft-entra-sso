@@ -73,17 +73,6 @@ class Settings_Fields {
 	public static function authentication_fields(): array {
 		return array(
 			array(
-				'id'          => \SFME\Plugin::OPTION_AUTH_PROTOCOL,
-				'label'       => __( 'Authentication Protocol', 'sso-for-microsoft-entra' ),
-				'type'        => 'radio',
-				'options'     => array(
-					'oidc' => __( 'OpenID Connect (OIDC)', 'sso-for-microsoft-entra' ),
-					'saml' => __( 'SAML 2.0', 'sso-for-microsoft-entra' ),
-				),
-				'default'     => 'oidc',
-				'description' => __( 'OIDC is recommended for most setups. SAML requires federation metadata.', 'sso-for-microsoft-entra' ),
-			),
-			array(
 				'id'          => \SFME\Plugin::OPTION_AUTO_REDIRECT,
 				'label'       => __( 'Force SSO', 'sso-for-microsoft-entra' ),
 				'type'        => 'checkbox',
@@ -205,17 +194,6 @@ class Settings_Fields {
 	public static function sanitize_client_id( $value ): string {
 		$value = sanitize_text_field( (string) $value );
 		return self::is_guid( $value ) ? $value : '';
-	}
-
-	/**
-	 * Sanitize the authentication protocol value.
-	 *
-	 * @param mixed $value Raw input.
-	 * @return string 'oidc' or 'saml' — defaults to 'oidc'.
-	 */
-	public static function sanitize_protocol( $value ): string {
-		$value = sanitize_text_field( (string) $value );
-		return in_array( $value, array( 'oidc', 'saml' ), true ) ? $value : 'oidc';
 	}
 
 	/**

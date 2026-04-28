@@ -5,8 +5,7 @@
  * Handles all SSO-related actions on the WordPress login page:
  *  - entra_login      : redirect the browser to the IdP authorization endpoint.
  *  - entra_callback   : process the OIDC authorization code response.
- *  - entra_saml_acs   : process the SAML assertion POSTed by Entra.
- *  - entra_logout     : single log-out (SLO) redirect.
+ *  - entra_logout     : single log-out redirect.
  *
  * Security notes throughout this file explain every decision that affects the
  * authentication security boundary.
@@ -20,7 +19,6 @@ defined( 'ABSPATH' ) || exit;
 
 use SFME\Plugin;
 use SFME\Auth\OIDC_Client;
-use SFME\Auth\SAML_Client;
 use SFME\Security\Rate_Limiter;
 use SFME\Security\State_Manager;
 use SFME\User\User_Handler;
@@ -81,10 +79,6 @@ class Login_Handler {
 				self::handle_callback();
 				break;
 
-			case 'entra_saml_acs':
-				self::handle_saml_acs();
-				break;
-
 			case 'entra_logout':
 				self::handle_logout();
 				break;
@@ -127,18 +121,12 @@ class Login_Handler {
 		}
 		Rate_Limiter::record( $ip );
 
-		$protocol = (string) $plugin->get_option( Plugin::OPTION_AUTH_PROTOCOL, 'oidc' );
-
-		if ( 'saml' === $protocol ) {
-			$auth_url = SAML_Client::get_authorization_url();
-		} else {
-			$auth_url = OIDC_Client::get_authorization_url();
-		}
+		$auth_url = OIDC_Client::get_authorization_url();
 
 		if ( is_wp_error( $auth_url ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging
-				error_log( 'SFME build URL error [' . $protocol . ']: ' . $auth_url->get_error_code() . ' — ' . $auth_url->get_error_message() );
+				error_log( 'SFME build URL error: ' . $auth_url->get_error_code() . ' — ' . $auth_url->get_error_message() );
 			}
 			self::redirect_with_error( 'sso_build_url_failed' );
 			return;
@@ -222,86 +210,16 @@ class Login_Handler {
 	}
 
 	// -------------------------------------------------------------------------
-	// Action: entra_saml_acs (SAML Assertion Consumer Service)
+	// Action: entra_logout
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Process the SAML response POSTed by Entra to the ACS endpoint.
+	 * Handle log-out from both WordPress and Entra.
 	 *
-	 * SAML responses arrive via HTTP POST. The SAMLResponse parameter contains
-	 * a base64-encoded, optionally deflated XML assertion.
-	 *
-	 * @return void
-	 */
-	public static function handle_saml_acs(): void {
-		// Security: SAML responses MUST be delivered via POST per the SAML
-		// HTTP POST binding spec. Reject any other method.
-		if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
-			self::redirect_with_error( 'saml_invalid_method' );
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( empty( $_POST['SAMLResponse'] ) ) {
-			self::redirect_with_error( 'saml_missing_response' );
-			return;
-		}
-
-		// Security (CSRF): validate the RelayState token that was issued during
-		// the outbound SAML request. Without this check an attacker could submit
-		// a captured SAMLResponse outside of an active login flow (IdP-initiated
-		// replay). The state is consumed on first use — replay is blocked.
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- SAML ACS receives POST from external IdP; CSRF protected by RelayState validation
-		$relay_state = isset( $_POST['RelayState'] )
-			? sanitize_text_field( wp_unslash( $_POST['RelayState'] ) )
-			: '';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( '' === $relay_state || ! State_Manager::validate_state( $relay_state ) ) {
-			self::redirect_with_error( 'saml_invalid_relay_state' );
-			return;
-		}
-
-		// Security (M3): strip all characters that are not valid base64 alphabet.
-		// sanitize_text_field() would collapse newlines to spaces and strip angle
-		// brackets, which corrupts line-wrapped base64 payloads. A character-class
-		// filter is safe because base64_decode() only uses [A-Za-z0-9+/=\r\n].
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$saml_response = preg_replace( '/[^A-Za-z0-9+\/=\r\n]/', '', wp_unslash( $_POST['SAMLResponse'] ) );
-
-		// Rate-limit SAML ACS endpoint the same as OIDC callback.
-		$ip = self::get_client_ip();
-		if ( ! Rate_Limiter::check( $ip ) ) {
-			self::redirect_with_error( 'rate_limited' );
-			return;
-		}
-		Rate_Limiter::record( $ip );
-
-		$claims = SAML_Client::handle_response( $saml_response );
-
-		if ( is_wp_error( $claims ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled
-				error_log( 'SFME SAML ACS error: ' . $claims->get_error_message() );
-			}
-			self::redirect_with_error( 'saml_response_failed' );
-			return;
-		}
-
-		self::authenticate_user( $claims, 'saml' );
-	}
-
-	// -------------------------------------------------------------------------
-	// Action: entra_logout (SLO)
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Handle single log-out from both WordPress and Entra.
-	 *
-	 * If SSO logout is enabled, the user is signed out of WordPress first,
-	 * then redirected to the Entra logout endpoint which will clear the Entra
-	 * session. Without this, a user who clicks "Logout" in WordPress would
-	 * still have an active Entra session and could silently re-authenticate.
+	 * Signs the user out of WordPress first, then redirects to the Entra
+	 * logout endpoint to clear the Entra session. Without this, a user who
+	 * clicks "Logout" in WordPress would still have an active Entra session
+	 * and could silently re-authenticate.
 	 *
 	 * @return void
 	 */
@@ -379,7 +297,7 @@ class Login_Handler {
 
 		// Security: never redirect mid-callback — that would create an infinite
 		// loop and discard the authorization code.
-		$sso_actions = array( 'entra_login', 'entra_callback', 'entra_saml_acs', 'entra_logout' );
+		$sso_actions = array( 'entra_login', 'entra_callback', 'entra_logout' );
 		if ( in_array( $action, $sso_actions, true ) ) {
 			return;
 		}
@@ -406,12 +324,8 @@ class Login_Handler {
 	/**
 	 * Find or create a WordPress user from IdP claims, then log them in.
 	 *
-	 * This shared path is used by both the OIDC callback and the SAML ACS
-	 * handler. Both produce the same normalised claims array so User_Handler
-	 * needs no knowledge of the underlying protocol.
-	 *
 	 * @param array  $claims   Normalised user claims (sub, email, given_name, …).
-	 * @param string $protocol 'oidc' or 'saml' — stored as user meta.
+	 * @param string $protocol Authentication protocol used — stored as user meta.
 	 *
 	 * @return void
 	 */
@@ -450,7 +364,7 @@ class Login_Handler {
 		 *
 		 * @param int    $user_id  WordPress user ID.
 		 * @param array  $claims   Normalised IdP claims.
-		 * @param string $protocol Authentication protocol used ('oidc' or 'saml').
+		 * @param string $protocol Authentication protocol used ('oidc').
 		 */
 		do_action( 'sfme_user_authenticated', $user_id, $claims, $protocol );
 
@@ -521,8 +435,8 @@ class Login_Handler {
 	/**
 	 * Check whether the minimum SSO configuration is present.
 	 *
-	 * Both OIDC and SAML require a tenant ID. Protocol-specific requirements
-	 * (client_id/secret vs. metadata) are validated by the respective client.
+	 * OIDC requires a tenant ID. Protocol-specific requirements
+	 * (client_id/secret) are validated by OIDC_Client.
 	 *
 	 * @return bool
 	 */

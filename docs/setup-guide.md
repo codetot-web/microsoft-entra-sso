@@ -115,8 +115,6 @@ The **Redirect URI** is displayed below these fields — it is auto-generated an
 
 ### 2.3 Authentication Section
 
-- **Protocol**: Select **OIDC (OpenID Connect)** — this is recommended for most deployments.
-  - Select **SAML 2.0** only if your organization requires SAML (see Part 3).
 - **Allow local login**: Keep this checked during initial setup and testing so you can still log in with your WordPress username/password if something goes wrong. You can uncheck it later to force all logins through Microsoft.
 
 ### 2.4 User Provisioning
@@ -155,41 +153,7 @@ Role mapping is evaluated top-to-bottom. A user is assigned the first matching r
 
 ---
 
-## Part 3 — SAML 2.0 Setup (Optional)
-
-Use SAML only if your organization specifically requires it. OIDC (Part 2) is simpler and recommended.
-
-### 3.1 Configure SAML in Azure
-
-1. In the Azure Portal, go to **Microsoft Entra ID → Enterprise applications**.
-2. Search for and click on your application.
-3. In the left sidebar, click **Single sign-on**.
-4. Select **SAML**.
-5. Under **Basic SAML Configuration**, set:
-   - **Identifier (Entity ID)**: `https://yoursite.com` (your WordPress site URL)
-   - **Reply URL (ACS URL)**: `https://yoursite.com/sso/saml-acs`
-6. Click **Save**.
-7. Scroll down to **SAML Certificates** and find the **App Federation Metadata URL**. Copy this URL.
-
-### 3.2 Import Metadata in the Plugin
-
-1. In WordPress admin, go to **Settings → Entra SSO**.
-2. Under **Authentication**, set **Protocol** to **SAML 2.0**.
-3. Find the **Import Federation Metadata** section.
-4. Paste the Federation Metadata URL from Step 3.1 into the **Metadata URL** field.
-5. Click **Import**. The plugin will fetch the XML and auto-populate:
-   - Entity ID
-   - SSO URL
-   - Signing certificate(s)
-6. Review the imported values, then click **Save Changes**.
-
-### 3.3 Test SAML Login
-
-Follow the same incognito-window test procedure from Step 2.7.
-
----
-
-## Part 4 — Troubleshooting
+## Part 3 — Troubleshooting
 
 ### AADSTS50011: Redirect URI mismatch
 
@@ -283,7 +247,7 @@ Or wait 15 minutes for the window to expire automatically.
 
 ---
 
-## Part 5 — Security Notes
+## Part 4 — Security Notes
 
 ### Encrypted secrets
 
@@ -313,13 +277,7 @@ Always use HTTPS in production. The redirect URI registered in Azure must use `h
 
 The plugin only accepts RS256 (RSA-SHA256) as a JWT signing algorithm. Tokens signed with `none`, `HS256`, `HS384`, `HS512`, or any other algorithm are rejected to prevent known algorithm-confusion attacks.
 
-### Federation metadata security
-
-When importing SAML federation metadata via URL, only `https://` URLs are accepted. The metadata XML is parsed with XXE (XML External Entity) protections enabled to prevent XML injection attacks.
-
----
-
-## Part 6 — Frequently Asked Questions
+## Part 5 — Frequently Asked Questions
 
 **Q: Can users still log in with their WordPress username and password?**
 

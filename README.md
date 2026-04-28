@@ -5,13 +5,11 @@
 [![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD). Supports SAML 2.0 and OpenID Connect with PKCE.
+Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD) via OpenID Connect with PKCE.
 
 ## Features
 
-- **SAML 2.0** with one-click federation metadata import
-- **OpenID Connect (OIDC)** with PKCE
-- **Auto-extract** Tenant ID and Client ID from the metadata URL
+- **OpenID Connect (OIDC)** with PKCE — the most secure OAuth 2.0 flow
 - **Automatic user provisioning** on first SSO login
 - **Role mapping** from Entra security groups to WordPress roles
 - **Encrypted** client-secret storage
@@ -19,14 +17,16 @@ Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD).
 - **Contextual Help tabs** built into the settings page
 - **Vietnamese translation** included, community translations via [translate.wordpress.org](https://translate.wordpress.org/)
 
-## Quick Start (SAML)
+## Quick Start
 
 1. Install and activate the plugin.
-2. In Azure Portal: **Enterprise Applications** > your app > **Single sign-on** > **SAML**.
-3. Set **Reply URL (ACS)** to `https://yoursite.com/sso/saml-acs`.
-4. Copy the **App Federation Metadata URL**.
-5. In WordPress: **Settings** > **Entra SSO** > paste the URL > click **Import Metadata**.
-6. Click **Save Changes**. Done.
+2. In Azure Portal: **App registrations** > **+ New registration**.
+3. Set **Redirect URI** (Web) to `https://yoursite.com/sso/callback`.
+4. Copy the **Application (client) ID** and **Directory (tenant) ID**.
+5. Go to **Certificates & secrets** > **+ New client secret** > copy the Value.
+6. In WordPress: **Settings** > **Entra SSO** > enter Tenant ID, Client ID, Client Secret > **Save Changes**.
+7. Add API permissions: **Microsoft Graph** > Delegated: `openid`, `profile`, `email`.
+8. Test in an incognito window.
 
 ## Requirements
 
@@ -47,8 +47,6 @@ Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD).
 ```bash
 cd wp-content/plugins/
 git clone https://github.com/codetot-web/sso-for-microsoft-entra.git
-cd sso-for-microsoft-entra
-composer install --no-dev
 ```
 
 Activate the plugin from the WordPress admin.
@@ -57,30 +55,18 @@ Activate the plugin from the WordPress admin.
 
 Click the **Help** button (top-right) on the settings page for step-by-step guides:
 
-- **Quick Start** — 6-step SAML setup
+- **Quick Start** — OIDC setup walkthrough
 - **Azure Setup** — Full app registration walkthrough
-- **SAML Setup** — Entity ID, ACS URL, NinjaFirewall notes
 - **Troubleshooting** — Common errors and fixes
 
-## Security Hardening (v2.1.0)
+## Security
 
-- SAML assertions must be individually signed — response-level-only signatures are rejected (XSW prevention)
-- Assertion conditions (NotBefore, NotOnOrAfter, AudienceRestriction) are strictly enforced
-- Metadata import is restricted to known Microsoft Entra hosts with private IP blocking
+- PKCE (Proof Key for Code Exchange) prevents authorization code interception
+- OAuth state parameter prevents CSRF attacks
+- ID token nonce prevents token replay
 - `administrator` role is blocked as the SSO default role
 - Default role for new SSO users is `subscriber`
-
-## NinjaFirewall Compatibility
-
-If you use NinjaFirewall, create a `.htninja` file in your document root:
-
-```php
-<?php
-if ( isset( $_SERVER["REQUEST_URI"] ) &&
-     strpos( $_SERVER["REQUEST_URI"], "/sso/saml-acs" ) !== false ) {
-    return "ALLOW";
-}
-```
+- Client secret encrypted at rest using libsodium or AES-256-GCM
 
 ## Development
 

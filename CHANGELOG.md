@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.2.0 (2026-04-28)
+
+### Breaking
+
+- **Removed SAML 2.0 support** — plugin now uses OpenID Connect with PKCE exclusively (#12)
+- Removed `robrichards/xmlseclibs` and `litesaml/lightsaml` Composer dependencies
+- Removed `/sso/saml-acs` endpoint, SAML Metadata Import section, and protocol selector from settings
+- Removed `OPTION_AUTH_PROTOCOL` and `OPTION_SAML_METADATA` constants
+- PHP 8.1 requirement remains (unchanged from 2.0.0)
+
+### Fixed
+
+- Client secret sanitization no longer trims whitespace before encrypting — preserves secrets that contain leading/trailing spaces
+- Removed `load_plugin_textdomain()` call — unnecessary for WordPress.org hosted plugins since WordPress 4.6
+
+### Changed
+
+- External Services section in readme rewritten with detailed data flow description per WordPress.org review feedback
+- Plugin description updated to reflect OIDC-only scope
+- Admin help tabs updated: removed SAML Setup tab, rewrote Quick Start for OIDC
+- Admin JS simplified: removed metadata import and protocol toggle functions
+
+### Removed
+
+- `includes/auth/class-saml-client.php`
+- `includes/xml/class-metadata-parser.php`
+- `includes/xml/class-xml-security.php`
+- `tests/test-metadata-parser.php`
+- `includes/xml/` directory
+
 ## 2.1.1 (2026-04-25)
 
 ### Added

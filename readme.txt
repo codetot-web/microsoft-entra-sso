@@ -1,14 +1,14 @@
 === SSO for Microsoft Entra ===
 Contributors: khoipro, codetot
-Tags: sso, microsoft, entra, azure, openid-connect, saml, single-sign-on
+Tags: sso, microsoft, entra, azure, openid-connect, single-sign-on
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 2.1.1
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD). Supports OpenID Connect with PKCE and SAML 2.0.
+Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD) via OpenID Connect with PKCE.
 
 == Description ==
 
@@ -16,9 +16,7 @@ Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD).
 
 **Key features:**
 
-* **SAML 2.0** with one-click federation metadata import — paste the metadata URL and everything auto-configures.
-* **OpenID Connect (OIDC)** with PKCE — the most secure OAuth 2.0 flow.
-* **Auto-extract Tenant ID and Client ID** from the federation metadata URL — no manual copy-paste.
+* **OpenID Connect (OIDC)** with PKCE — the most secure OAuth 2.0 flow, no client secret exposure.
 * Automatic user provisioning — create WordPress accounts on first SSO login.
 * Role mapping — assign WordPress roles based on Entra group membership.
 * Encrypted client-secret storage using WordPress secret keys.
@@ -30,43 +28,42 @@ Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD).
 
 == Installation ==
 
-= Quick Start (SAML — Recommended) =
-
 1. Upload the `sso-for-microsoft-entra` folder to `/wp-content/plugins/` or install via the WordPress plugin installer.
 2. Activate the plugin from the **Plugins** screen.
-3. In Azure Portal, go to **Enterprise Applications → your app → Single sign-on → SAML**.
-4. Set **Reply URL (ACS)** to `https://yoursite.com/sso/saml-acs`.
-5. Copy the **App Federation Metadata URL** from the SAML Certificates section.
-6. In WordPress, go to **Settings → Entra SSO**, paste the metadata URL, and click **Import Metadata**.
-7. Tenant ID, Client ID, and protocol are auto-filled. Click **Save Changes**.
-8. Test in an incognito window — click "Sign in with Microsoft" on the login page.
-
-= OIDC Setup =
-
-1. Create an Azure App Registration with redirect URI: `https://yoursite.com/sso/callback`.
-2. Enter **Tenant ID**, **Client ID**, and **Client Secret** in **Settings → Entra SSO**.
-3. Save and test.
+3. In Azure Portal, go to **App registrations → + New registration**.
+4. Set **Redirect URI** (Web) to `https://yoursite.com/sso/callback`.
+5. Copy the **Application (client) ID** and **Directory (tenant) ID** from the overview page.
+6. Go to **Certificates & secrets → + New client secret** → copy the Value.
+7. In WordPress, go to **Settings → Entra SSO**, enter **Tenant ID**, **Client ID**, and **Client Secret**. Click **Save Changes**.
+8. Go to **API permissions → + Add permission → Microsoft Graph → Delegated: openid, profile, email**.
+9. Test in an incognito window — click "Sign in with Microsoft" on the login page.
 
 For detailed instructions, click the **Help** button on the settings page, or see the [setup guide on GitHub](https://github.com/codetot-web/sso-for-microsoft-entra).
 
 == External Services ==
 
-This plugin communicates with Microsoft Entra ID endpoints to perform authentication. Data transmitted includes OAuth 2.0 / OIDC tokens and user profile information returned by Microsoft's identity platform.
+This plugin communicates with Microsoft Entra ID (Azure AD) endpoints to perform OpenID Connect authentication.
+
+**What data is sent and when:**
+
+* When a user clicks "Sign in with Microsoft", their browser is redirected to the Microsoft authorization endpoint. No user data is sent by the plugin at this stage — Microsoft handles the login form.
+* After the user authenticates, the plugin exchanges an authorization code for tokens by sending the code, client ID, client secret, and PKCE verifier to the Microsoft token endpoint. This happens server-to-server.
+* The plugin fetches the OIDC discovery document and JSON Web Key Set (JWKS) to validate token signatures. These are public endpoints and no user data is sent.
 
 **Endpoints contacted:**
 
 * Authorization: `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize`
-* Token: `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
-* SAML SSO: `https://login.microsoftonline.com/{tenant}/saml2`
-* Federation metadata: `https://login.microsoftonline.com/{tenant}/federationmetadata/2007-06/federationmetadata.xml`
+* Token exchange: `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
 * OIDC discovery: `https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration`
+* JWKS (token signing keys): URL from discovery document, typically `https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys`
+* Logout: `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout`
 
-All endpoints are owned and operated by Microsoft Corporation.
+All endpoints are owned and operated by Microsoft Corporation. The `{tenant}` value is the Directory (tenant) ID configured by the site administrator.
 
 * [Microsoft Privacy Statement](https://privacy.microsoft.com/en-us/privacystatement)
 * [Microsoft Terms of Service](https://www.microsoft.com/en-us/servicesagreement)
 
-No data is sent to third-party services. Authentication tokens are validated locally and never stored beyond the active session.
+No data is sent to any other third-party services. Authentication tokens are validated locally using public signing keys and are never stored beyond the active session.
 
 == Frequently Asked Questions ==
 
@@ -86,15 +83,6 @@ If **Auto-Create Users** is enabled, the plugin creates a WordPress account usin
 
 Yes. Encrypted using libsodium (XSalsa20-Poly1305) or AES-256-GCM with a key derived from WordPress secret keys. Never written to log files.
 
-= I use NinjaFirewall and SAML login fails =
-
-NinjaFirewall blocks the base64-encoded SAML POST data. Create a `.htninja` file in your document root:
-
-`<?php
-if ( strpos( $_SERVER["REQUEST_URI"], "/sso/saml-acs" ) !== false ) {
-    return "ALLOW";
-}`
-
 == Support ==
 
 * **Bug reports and feature requests:** [GitHub Issues](https://github.com/codetot-web/sso-for-microsoft-entra/issues)
@@ -104,11 +92,18 @@ if ( strpos( $_SERVER["REQUEST_URI"], "/sso/saml-acs" ) !== false ) {
 == Screenshots ==
 
 1. **Settings page** — Connection, authentication, and user provisioning settings.
-2. **SAML metadata import** — One-click import from federation metadata URL.
-3. **Role mapping** — Map Entra group Object IDs to WordPress roles.
-4. **Login page** — Microsoft sign-in button on the WordPress login form.
+2. **Role mapping** — Map Entra group Object IDs to WordPress roles.
+3. **Login page** — Microsoft sign-in button on the WordPress login form.
 
 == Changelog ==
+
+= 2.2.0 =
+* **Breaking:** Removed SAML 2.0 support. The plugin now uses OpenID Connect with PKCE exclusively.
+* **Breaking:** Removed `robrichards/xmlseclibs` and `litesaml/lightsaml` dependencies — no Composer vendor packages required.
+* **Breaking:** Removed SAML Metadata Import section, protocol selector, and `/sso/saml-acs` endpoint.
+* **Fixed:** Client secret sanitization no longer trims whitespace before encrypting (preserves secrets with leading/trailing spaces).
+* **Fixed:** Removed `load_plugin_textdomain()` call — unnecessary for WordPress.org hosted plugins since WordPress 4.6.
+* **Improved:** External Services section in readme rewritten with detailed data flow description.
 
 = 2.0.3 =
 * **Fixed:** JS lint errors in protocol toggle (CI green).
@@ -160,6 +155,9 @@ if ( strpos( $_SERVER["REQUEST_URI"], "/sso/saml-acs" ) !== false ) {
 
 == Upgrade Notices ==
 
+= 2.2.0 =
+SAML 2.0 support has been removed. If you were using SAML, switch to OpenID Connect: create an Azure App Registration, set the redirect URI to `https://yoursite.com/sso/callback`, and enter your Tenant ID, Client ID, and Client Secret.
+
 = 2.0.2 =
 Client Secret field is now hidden for SAML setups and no longer triggers a missing-field warning.
 
@@ -167,7 +165,7 @@ Client Secret field is now hidden for SAML setups and no longer triggers a missi
 Fix WordPress 6.9 compatibility header and Plugin Check compliance.
 
 = 2.0.0 =
-**Breaking:** Plugin renamed and all internal prefixes changed. Settings auto-migrate on activation — just deactivate and reactivate. Requires PHP 8.1+. If using NinjaFirewall, create a `.htninja` whitelist for `/sso/saml-acs`.
+**Breaking:** Plugin renamed and all internal prefixes changed. Settings auto-migrate on activation — just deactivate and reactivate. Requires PHP 8.1+.
 
 = 1.1.0 =
 **Breaking:** Update Azure redirect URI to `https://yoursite.com/sso/callback`. Re-enter client secret (encryption changed). Flush permalinks.

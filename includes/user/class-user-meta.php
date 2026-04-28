@@ -101,7 +101,7 @@ class User_Meta {
 			return false;
 		}
 
-		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Required for user identity resolution by Entra OID; runs once per login.
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Required for user identity resolution by Entra OID; runs once per login.
 		$query = new \WP_User_Query(
 			array(
 				'meta_key'   => self::ENTRA_OID,
@@ -110,6 +110,7 @@ class User_Meta {
 				'fields'     => 'ID',
 			)
 		);
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 
 		$results = $query->get_results();
 

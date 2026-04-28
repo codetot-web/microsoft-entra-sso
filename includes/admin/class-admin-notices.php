@@ -83,9 +83,7 @@ class Admin_Notices {
 			$missing[] = __( 'Client ID', 'sso-for-microsoft-entra' );
 		}
 
-		// Client secret is only required for OIDC — SAML uses certificates from metadata.
-		$protocol = (string) $plugin->get_option( \SFME\Plugin::OPTION_AUTH_PROTOCOL, 'oidc' );
-		if ( 'oidc' === $protocol && ! $plugin->get_option( \SFME\Plugin::OPTION_CLIENT_SECRET ) ) {
+		if ( ! $plugin->get_option( \SFME\Plugin::OPTION_CLIENT_SECRET ) ) {
 			$missing[] = __( 'Client Secret', 'sso-for-microsoft-entra' );
 		}
 

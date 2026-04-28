@@ -16,8 +16,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class Settings_Page
  *
- * Manages the Settings > Entra SSO admin page, its five sections, all
- * field registrations, and the AJAX handler for metadata import.
+ * Manages the Settings > Entra SSO admin page, its sections, and all
+ * field registrations.
  */
 class Settings_Page {
 
@@ -107,14 +107,6 @@ class Settings_Page {
 
 		$screen->add_help_tab(
 			array(
-				'id'      => 'sfme_help_saml',
-				'title'   => __( 'SAML Setup', 'sso-for-microsoft-entra' ),
-				'content' => self::get_help_saml_setup(),
-			)
-		);
-
-		$screen->add_help_tab(
-			array(
 				'id'      => 'sfme_help_troubleshooting',
 				'title'   => __( 'Troubleshooting', 'sso-for-microsoft-entra' ),
 				'content' => self::get_help_troubleshooting(),
@@ -134,13 +126,13 @@ class Settings_Page {
 	 * @return string
 	 */
 	private static function get_help_quick_start(): string {
-		return '<h3>' . esc_html__( 'Quick Start (SAML — Recommended)', 'sso-for-microsoft-entra' ) . '</h3>'
+		return '<h3>' . esc_html__( 'Quick Start', 'sso-for-microsoft-entra' ) . '</h3>'
 			. '<ol>'
-			. '<li>' . esc_html__( 'In Azure Portal, go to Enterprise Applications → your app → Single sign-on → SAML.', 'sso-for-microsoft-entra' ) . '</li>'
-			. '<li>' . esc_html__( 'Set Reply URL (ACS) to:', 'sso-for-microsoft-entra' ) . ' <code>' . esc_url( home_url( '/sso/saml-acs' ) ) . '</code></li>'
-			. '<li>' . esc_html__( 'Copy the App Federation Metadata URL from the SAML Certificates section.', 'sso-for-microsoft-entra' ) . '</li>'
-			. '<li>' . esc_html__( 'Paste it into the Metadata URL field below and click Import Metadata.', 'sso-for-microsoft-entra' ) . '</li>'
-			. '<li>' . esc_html__( 'Tenant ID, Client ID, and protocol are auto-filled. Click Save Changes.', 'sso-for-microsoft-entra' ) . '</li>'
+			. '<li>' . esc_html__( 'In Azure Portal, go to App registrations → + New registration.', 'sso-for-microsoft-entra' ) . '</li>'
+			. '<li>' . esc_html__( 'Set Redirect URI (Web) to:', 'sso-for-microsoft-entra' ) . ' <code>' . esc_url( home_url( '/sso/callback' ) ) . '</code></li>'
+			. '<li>' . esc_html__( 'Copy the Application (client) ID and Directory (tenant) ID from the overview page.', 'sso-for-microsoft-entra' ) . '</li>'
+			. '<li>' . esc_html__( 'Go to Certificates & secrets → + New client secret → copy the Value.', 'sso-for-microsoft-entra' ) . '</li>'
+			. '<li>' . esc_html__( 'Enter Tenant ID, Client ID, and Client Secret in Settings → Entra SSO. Click Save Changes.', 'sso-for-microsoft-entra' ) . '</li>'
 			. '<li>' . esc_html__( 'Test in an incognito window — click "Sign in with Microsoft" on the login page.', 'sso-for-microsoft-entra' ) . '</li>'
 			. '</ol>';
 	}
@@ -159,29 +151,7 @@ class Settings_Page {
 			. '<li>' . esc_html__( 'Go to Certificates & secrets → + New client secret → copy the Value immediately.', 'sso-for-microsoft-entra' ) . '</li>'
 			. '<li>' . esc_html__( 'Go to API permissions → + Add permission → Microsoft Graph → Delegated: openid, profile, email.', 'sso-for-microsoft-entra' ) . '</li>'
 			. '</ol>'
-			. '<p><strong>' . esc_html__( 'For OIDC:', 'sso-for-microsoft-entra' ) . '</strong> '
-			. esc_html__( 'Enter Tenant ID, Client ID, and Client Secret in the Connection section below.', 'sso-for-microsoft-entra' ) . '</p>'
-			. '<p><strong>' . esc_html__( 'For SAML:', 'sso-for-microsoft-entra' ) . '</strong> '
-			. esc_html__( 'Use the Quick Start tab instead — just paste the metadata URL.', 'sso-for-microsoft-entra' ) . '</p>';
-	}
-
-	/**
-	 * SAML Setup help tab content.
-	 *
-	 * @return string
-	 */
-	private static function get_help_saml_setup(): string {
-		return '<h3>' . esc_html__( 'SAML 2.0 Configuration', 'sso-for-microsoft-entra' ) . '</h3>'
-			. '<ol>'
-			. '<li>' . esc_html__( 'In Azure Portal → Enterprise applications → your app → Single sign-on → SAML.', 'sso-for-microsoft-entra' ) . '</li>'
-			. '<li>' . esc_html__( 'Set Basic SAML Configuration:', 'sso-for-microsoft-entra' ) . '<br>'
-			. '&nbsp;&nbsp;' . esc_html__( 'Identifier (Entity ID):', 'sso-for-microsoft-entra' ) . ' <code>' . esc_html( \SFME\Plugin::get_instance()->get_option( \SFME\Plugin::OPTION_CLIENT_ID, 'your-client-id' ) ) . '</code><br>'
-			. '&nbsp;&nbsp;' . esc_html__( 'Reply URL (ACS):', 'sso-for-microsoft-entra' ) . ' <code>' . esc_url( home_url( '/sso/saml-acs' ) ) . '</code></li>'
-			. '<li>' . esc_html__( 'Under SAML Certificates, copy the App Federation Metadata URL.', 'sso-for-microsoft-entra' ) . '</li>'
-			. '<li>' . esc_html__( 'Paste it in the Metadata URL field below and click Import Metadata.', 'sso-for-microsoft-entra' ) . '</li>'
-			. '</ol>'
-			. '<p><strong>' . esc_html__( 'NinjaFirewall users:', 'sso-for-microsoft-entra' ) . '</strong> '
-			. esc_html__( 'Create a .htninja file in your document root to whitelist /sso/saml-acs — otherwise the firewall blocks the SAML POST data.', 'sso-for-microsoft-entra' ) . '</p>';
+			. '<p>' . esc_html__( 'Enter Tenant ID, Client ID, and Client Secret in the Connection section below.', 'sso-for-microsoft-entra' ) . '</p>';
 	}
 
 	/**
@@ -198,8 +168,6 @@ class Settings_Page {
 			. '<dd>' . esc_html__( 'The Tenant ID or Client ID is incorrect. Re-copy from Azure Portal → App registrations → Overview.', 'sso-for-microsoft-entra' ) . '</dd>'
 			. '<dt><strong>' . esc_html__( 'Rate limited', 'sso-for-microsoft-entra' ) . '</strong></dt>'
 			. '<dd>' . esc_html__( 'Wait for the rate limit window to expire, or adjust Max Attempts / Window in the Rate Limiting section below.', 'sso-for-microsoft-entra' ) . '</dd>'
-			. '<dt><strong>' . esc_html__( 'NinjaFirewall blocks SAML callback', 'sso-for-microsoft-entra' ) . '</strong></dt>'
-			. '<dd>' . esc_html__( 'Create .htninja in document root with a rule to return "ALLOW" for /sso/saml-acs requests.', 'sso-for-microsoft-entra' ) . '</dd>'
 			. '</dl>'
 			. '<p>' . esc_html__( 'Enable WP_DEBUG_LOG in wp-config.php and check wp-content/debug.log for detailed error messages.', 'sso-for-microsoft-entra' ) . '</p>';
 	}
@@ -246,9 +214,6 @@ class Settings_Page {
 				'nonce'         => wp_create_nonce( 'sfme_admin_nonce' ),
 				'dismiss_nonce' => wp_create_nonce( 'sfme_dismiss_notice' ),
 				'strings'       => array(
-					'importing'    => __( 'Importing…', 'sso-for-microsoft-entra' ),
-					'import_done'  => __( 'Metadata imported successfully.', 'sso-for-microsoft-entra' ),
-					'import_error' => __( 'Import failed. Please check the URL and try again.', 'sso-for-microsoft-entra' ),
 					'add_row'      => __( 'Add Mapping', 'sso-for-microsoft-entra' ),
 					'remove_row'   => __( 'Remove', 'sso-for-microsoft-entra' ),
 					'show_secret'  => __( 'Show', 'sso-for-microsoft-entra' ),
@@ -320,14 +285,6 @@ class Settings_Page {
 			self::PAGE_SLUG
 		);
 
-		register_setting(
-			self::OPTION_GROUP,
-			\SFME\Plugin::OPTION_AUTH_PROTOCOL,
-			array(
-				'sanitize_callback' => array( Settings_Fields::class, 'sanitize_protocol' ),
-				'default'           => 'oidc',
-			)
-		);
 		// M1: boolean checkbox options must use absint() so only 0 or 1 is stored.
 		register_setting(
 			self::OPTION_GROUP,
@@ -464,34 +421,6 @@ class Settings_Page {
 			);
 		}
 
-		// --- Section: Metadata Import ---
-		add_settings_section(
-			'sfme_section_metadata',
-			__( 'SAML Metadata Import', 'sso-for-microsoft-entra' ),
-			array( self::class, 'render_section_metadata' ),
-			self::PAGE_SLUG
-		);
-
-		register_setting(
-			self::OPTION_GROUP,
-			\SFME\Plugin::OPTION_SAML_METADATA,
-			array(
-				// Security (H2): sanitize_textarea_field() destroys XML by stripping tags
-				// and encoding entities. Use a callback that validates the XML is parseable
-				// via XML_Security::safe_load_xml() and re-serialises from the DOM so only
-				// structurally valid XML is ever stored. Invalid input keeps the old value.
-				'sanitize_callback' => array( self::class, 'sanitize_saml_metadata' ),
-				'default'           => '',
-			)
-		);
-
-		add_settings_field(
-			'sfme_metadata_url',
-			esc_html__( 'Metadata URL', 'sso-for-microsoft-entra' ),
-			array( self::class, 'render_metadata_import_field' ),
-			self::PAGE_SLUG,
-			'sfme_section_metadata'
-		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -507,7 +436,7 @@ class Settings_Page {
 	 * @return string Encrypted secret, or the previously stored encrypted value.
 	 */
 	public static function sanitize_client_secret( $value ): string {
-		$value = trim( (string) $value );
+		$value = (string) $value;
 
 		// Empty means the user left the field blank — preserve the existing value.
 		if ( '' === $value ) {
@@ -515,47 +444,6 @@ class Settings_Page {
 		}
 
 		return \SFME\Security\Encryption::encrypt( $value );
-	}
-
-	/**
-	 * Validate and sanitize SAML federation metadata XML before storage.
-	 *
-	 * Attempts to parse the submitted value through XML_Security::safe_load_xml()
-	 * (which applies XXE hardening). If parsing succeeds the value is
-	 * re-serialised via DOMDocument::saveXML() to normalise whitespace and
-	 * remove any injected markup. If parsing fails the previously stored value
-	 * is returned unchanged so the option is never set to invalid XML.
-	 *
-	 * Using sanitize_textarea_field() here would mangle '<', '>', and '&'
-	 * characters that are structural parts of XML, breaking the SAML library.
-	 *
-	 * @param mixed $value Raw posted value.
-	 * @return string Valid XML string, or the previously stored value on failure.
-	 */
-	public static function sanitize_saml_metadata( $value ): string {
-		$value = (string) $value;
-
-		if ( '' === trim( $value ) ) {
-			// Empty submission — preserve the existing value (may have been
-			// imported via AJAX). The metadata field is not part of the main
-			// form, so it arrives empty on every normal settings save.
-			return (string) get_option( \SFME\Plugin::OPTION_SAML_METADATA, '' );
-		}
-
-		$dom = \SFME\XML\XML_Security::safe_load_xml( $value );
-
-		if ( is_wp_error( $dom ) ) {
-			// Invalid XML — keep the previously stored value to avoid data loss.
-			add_settings_error(
-				\SFME\Plugin::OPTION_SAML_METADATA,
-				'saml_metadata_invalid',
-				__( 'SAML metadata XML is invalid and was not saved.', 'sso-for-microsoft-entra' ),
-				'error'
-			);
-			return (string) get_option( \SFME\Plugin::OPTION_SAML_METADATA, '' );
-		}
-
-		return $dom->saveXML();
 	}
 
 	// -------------------------------------------------------------------------
@@ -605,15 +493,6 @@ class Settings_Page {
 	 */
 	public static function render_section_rate_limiting(): void {
 		echo '<p>' . esc_html__( 'Control how many SSO login attempts are allowed per IP address within a time window.', 'sso-for-microsoft-entra' ) . '</p>';
-	}
-
-	/**
-	 * Render intro text for the Metadata Import section.
-	 *
-	 * @return void
-	 */
-	public static function render_section_metadata(): void {
-		echo '<p>' . esc_html__( 'Import SAML federation metadata from your Entra app federation metadata URL. Only required when using the SAML 2.0 protocol.', 'sso-for-microsoft-entra' ) . '</p>';
 	}
 
 	// -------------------------------------------------------------------------
@@ -741,33 +620,6 @@ class Settings_Page {
 	}
 
 	/**
-	 * Render the metadata import field (URL input + import button).
-	 *
-	 * @return void
-	 */
-	public static function render_metadata_import_field(): void {
-		?>
-		<div class="sfme-metadata-import">
-			<input
-				type="url"
-				id="sfme_metadata_url"
-				name="sfme_metadata_url"
-				value=""
-				class="regular-text"
-				placeholder="<?php esc_attr_e( 'https://login.microsoftonline.com/{tenant}/federationmetadata/2007-06/federationmetadata.xml', 'sso-for-microsoft-entra' ); ?>"
-			/>
-			<button type="button" id="sfme-import-metadata" class="button button-secondary">
-				<?php esc_html_e( 'Import Metadata', 'sso-for-microsoft-entra' ); ?>
-			</button>
-			<span id="sfme-import-status" class="sfme-import-status" aria-live="polite"></span>
-		</div>
-		<p class="description">
-			<?php esc_html_e( 'Paste the App Federation Metadata URL from your Entra Enterprise Application and click Import to populate SAML settings automatically.', 'sso-for-microsoft-entra' ); ?>
-		</p>
-		<?php
-	}
-
-	/**
 	 * Render the role-mapping repeatable rows.
 	 *
 	 * @param string $option_id   Option key.
@@ -868,126 +720,4 @@ class Settings_Page {
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// URL parsing helpers
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Extract tenant ID and client ID from a federation metadata URL.
-	 *
-	 * Parses URLs in the format:
-	 * https://login.microsoftonline.com/{tenant_id}/federationmetadata/2007-06/federationmetadata.xml?appid={client_id}
-	 *
-	 * @param string $url Federation metadata URL.
-	 * @return array{tenant_id: string, client_id: string} Extracted IDs (empty strings if not found).
-	 */
-	private static function extract_ids_from_metadata_url( string $url ): array {
-		$result = array(
-			'tenant_id' => '',
-			'client_id' => '',
-		);
-
-		$parsed = wp_parse_url( $url );
-		if ( ! $parsed ) {
-			return $result;
-		}
-
-		// Extract tenant ID from path: /tenant-guid/federationmetadata/etc.
-		if ( ! empty( $parsed['path'] ) ) {
-			if ( preg_match( '#/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/#i', $parsed['path'], $matches ) ) {
-				$result['tenant_id'] = strtolower( $matches[1] );
-			}
-		}
-
-		// Extract client ID from query string appid parameter.
-		if ( ! empty( $parsed['query'] ) ) {
-			parse_str( $parsed['query'], $query_params );
-			if ( ! empty( $query_params['appid'] ) && Settings_Fields::is_guid( $query_params['appid'] ) ) {
-				$result['client_id'] = strtolower( $query_params['appid'] );
-			}
-		}
-
-		return $result;
-	}
-
-	// -------------------------------------------------------------------------
-	// AJAX: Metadata import
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Handle AJAX request to import SAML federation metadata from a URL.
-	 *
-	 * @return void
-	 */
-	public static function handle_import_metadata(): void {
-		check_ajax_referer( 'sfme_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error(
-				array( 'message' => esc_html__( 'Insufficient permissions.', 'sso-for-microsoft-entra' ) ),
-				403
-			);
-		}
-
-		$url = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
-
-		if ( ! $url ) {
-			wp_send_json_error(
-				array( 'message' => esc_html__( 'No URL provided.', 'sso-for-microsoft-entra' ) )
-			);
-		}
-
-		// Extract tenant ID and client ID from the metadata URL before fetching.
-		$extracted = self::extract_ids_from_metadata_url( $url );
-
-		$dom = \SFME\XML\XML_Security::safe_load_xml_from_url( $url );
-
-		if ( is_wp_error( $dom ) ) {
-			wp_send_json_error(
-				array( 'message' => $dom->get_error_message() )
-			);
-		}
-
-		// Security (H-2): pass through sanitize_saml_metadata() so the AJAX path
-		// uses the same validation as the Settings API form submission.
-		update_option(
-			\SFME\Plugin::OPTION_SAML_METADATA,
-			self::sanitize_saml_metadata( $dom->saveXML() )
-		);
-
-		// Auto-populate tenant ID and client ID extracted from the URL.
-		if ( ! empty( $extracted['tenant_id'] ) ) {
-			update_option( \SFME\Plugin::OPTION_TENANT_ID, $extracted['tenant_id'] );
-		}
-		if ( ! empty( $extracted['client_id'] ) ) {
-			update_option( \SFME\Plugin::OPTION_CLIENT_ID, $extracted['client_id'] );
-		}
-
-		// Auto-switch to SAML protocol since federation metadata is SAML-specific.
-		update_option( \SFME\Plugin::OPTION_AUTH_PROTOCOL, 'saml' );
-
-		// Build a descriptive success message.
-		$auto_filled = array();
-		if ( ! empty( $extracted['tenant_id'] ) ) {
-			$auto_filled[] = 'Tenant ID';
-		}
-		if ( ! empty( $extracted['client_id'] ) ) {
-			$auto_filled[] = 'Client ID';
-		}
-		$auto_filled[] = 'Protocol → SAML';
-
-		$message = __( 'Metadata imported successfully.', 'sso-for-microsoft-entra' );
-		if ( $auto_filled ) {
-			/* translators: %s: comma-separated list of auto-filled field names */
-			$message .= ' ' . sprintf( __( 'Auto-filled: %s.', 'sso-for-microsoft-entra' ), implode( ', ', $auto_filled ) );
-		}
-
-		wp_send_json_success(
-			array(
-				'message'   => $message,
-				'tenant_id' => $extracted['tenant_id'],
-				'client_id' => $extracted['client_id'],
-			)
-		);
-	}
 }

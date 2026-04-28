@@ -38,11 +38,6 @@ class Plugin {
 	const OPTION_CLIENT_SECRET = 'sfme_client_secret';
 
 	/**
-	 * Authentication protocol to use: "oidc" or "saml".
-	 */
-	const OPTION_AUTH_PROTOCOL = 'sfme_auth_protocol';
-
-	/**
 	 * Whether to redirect users directly to Entra login (bypass WP login form).
 	 */
 	const OPTION_AUTO_REDIRECT = 'sfme_auto_redirect';
@@ -61,11 +56,6 @@ class Plugin {
 	 * Whether automatic user provisioning is enabled.
 	 */
 	const OPTION_USER_PROVISIONING = 'sfme_user_provisioning';
-
-	/**
-	 * Raw SAML federation metadata XML (imported from Entra).
-	 */
-	const OPTION_SAML_METADATA = 'sfme_saml_metadata';
 
 	/**
 	 * Maximum number of failed SSO login attempts before temporary lockout.
@@ -124,9 +114,6 @@ class Plugin {
 	 * @return void
 	 */
 	private function init(): void {
-		// Load plugin text domain for translations.
-		add_action( 'init', array( $this, 'load_textdomain' ) );
-
 		// Front-end + REST API authentication hooks.
 		add_action( 'init', array( $this, 'on_init' ) );
 
@@ -140,7 +127,6 @@ class Plugin {
 			add_action( 'admin_menu', array( $this, 'on_admin_menu' ) );
 			add_action( 'admin_enqueue_scripts', array( 'SFME\Admin\Settings_Page', 'enqueue_assets' ) );
 			add_action( 'admin_notices', array( 'SFME\Admin\Admin_Notices', 'render_notices' ) );
-			add_action( 'wp_ajax_sfme_import_metadata', array( 'SFME\Admin\Settings_Page', 'handle_import_metadata' ) );
 			add_action( 'wp_ajax_sfme_dismiss_notice', array( 'SFME\Admin\Admin_Notices', 'handle_dismiss' ) );
 		}
 	}
@@ -148,19 +134,6 @@ class Plugin {
 	// -------------------------------------------------------------------------
 	// Hook callbacks (stubs — implemented by later phases)
 	// -------------------------------------------------------------------------
-
-	/**
-	 * Load the plugin's translated strings.
-	 *
-	 * @return void
-	 */
-	public function load_textdomain(): void {
-		load_plugin_textdomain(
-			'sso-for-microsoft-entra',
-			false,
-			dirname( plugin_basename( SFME_PLUGIN_FILE ) ) . '/languages'
-		);
-	}
 
 	/**
 	 * Early init hook — registers custom rewrite endpoints for SSO.
@@ -172,7 +145,7 @@ class Plugin {
 	 * @return void
 	 */
 	public function on_init(): void {
-		// Register /sso/{slug} rewrite rule — matches login, callback, saml-acs, logout.
+		// Register /sso/{slug} rewrite rule — matches login, callback, logout.
 		add_rewrite_rule( '^sso/([a-z-]+)/?$', 'index.php?sfme_action=$matches[1]', 'top' );
 		add_filter( 'query_vars', array( $this, 'register_query_vars' ) );
 		add_action( 'template_redirect', array( $this, 'handle_sso_request' ) );
@@ -206,7 +179,6 @@ class Plugin {
 		$action_map = array(
 			'login'    => 'entra_login',
 			'callback' => 'entra_callback',
-			'saml-acs' => 'entra_saml_acs',
 			'logout'   => 'entra_logout',
 		);
 

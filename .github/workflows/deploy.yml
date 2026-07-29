@@ -22,3 +22,4 @@ jobs:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: sso-for-microsoft-entra
           ASSETS_DIR: .wordpress-org
+          VERSION: ${{ github.event.release.tag_name }}

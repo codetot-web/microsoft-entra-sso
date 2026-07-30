@@ -1,6 +1,8 @@
 # SSO for Microsoft Entra
 
 [![Lint & Test](https://github.com/codetot-web/sso-for-microsoft-entra/actions/workflows/ci.yml/badge.svg)](https://github.com/codetot-web/sso-for-microsoft-entra/actions/workflows/ci.yml)
+[![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/sso-for-microsoft-entra.svg)](https://wordpress.org/plugins/sso-for-microsoft-entra/)
+[![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/sso-for-microsoft-entra.svg)](https://wordpress.org/plugins/sso-for-microsoft-entra/)
 [![PHP 8.0+](https://img.shields.io/badge/PHP-8.0%2B-blue.svg)](https://www.php.net/)
 [![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -35,7 +37,17 @@ Single Sign-On authentication for WordPress using Microsoft Entra ID (Azure AD) 
 
 ## Installation
 
-### From WordPress Admin
+### From WordPress Admin (Recommended)
+
+1. In your WordPress admin, go to **Plugins** > **Add New**.
+2. Search for **SSO for Microsoft Entra**.
+3. Click **Install Now** and then **Activate**.
+
+### From WordPress.org
+
+Download the latest stable version directly from the [WordPress Plugin Directory](https://wordpress.org/plugins/sso-for-microsoft-entra/).
+
+### From GitHub Releases
 
 1. Download the latest release zip from [Releases](https://github.com/codetot-web/sso-for-microsoft-entra/releases).
 2. Go to **Plugins** > **Add New** > **Upload Plugin**.

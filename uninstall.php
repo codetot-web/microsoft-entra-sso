@@ -43,6 +43,13 @@ $wpdb->query(
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $wpdb->query(
 	"DELETE FROM {$wpdb->options}
-	 WHERE option_name LIKE '\_transient\_sfme\_%'
-	    OR option_name LIKE '\_transient\_timeout\_sfme\_%'"
+	 WHERE option_name LIKE '\\_transient\\_sfme\\_%'
+	    OR option_name LIKE '\\_transient\\_timeout\\_sfme\\_%'"
 );
+
+// -------------------------------------------------------------------------
+// 4. Drop the custom error log table.
+// -------------------------------------------------------------------------
+$error_log_table = $wpdb->prefix . 'sfme_error_log';
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Uninstall cleanup; table name is a safe identifier.
+$wpdb->query( "DROP TABLE IF EXISTS {$error_log_table}" );

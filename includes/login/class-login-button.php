@@ -10,6 +10,7 @@ namespace SFME\Login;
 defined( 'ABSPATH' ) || exit;
 
 use SFME\Plugin;
+use SFME\Logging\Error_Logger;
 
 /**
  * Class Login_Button
@@ -32,6 +33,7 @@ class Login_Button {
 	public static function init(): void {
 		add_action( 'login_form', array( __CLASS__, 'render' ) );
 		add_action( 'login_enqueue_scripts', array( __CLASS__, 'enqueue_styles' ) );
+		add_filter( 'login_message', array( __CLASS__, 'display_error' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -81,6 +83,36 @@ class Login_Button {
 			);
 			include $template;
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Error display
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Display an SSO error message above the login form.
+	 *
+	 * Checks for the 'sso_error' query parameter passed by
+	 * Login_Handler::redirect_with_error() and renders a
+	 * human-readable error message using Error_Logger labels.
+	 *
+	 * @param string $message Existing login message markup.
+	 *
+	 * @return string Modified login message markup with the error, or the
+	 *                original message when no error is present.
+	 */
+	public static function display_error( string $message ): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Error display is informational only; no state change.
+		if ( empty( $_GET['sso_error'] ) ) {
+			return $message;
+		}
+
+		$error_code = sanitize_key( wp_unslash( $_GET['sso_error'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$label      = Error_Logger::get_error_label( $error_code );
+
+		$message .= '<div id="login_error" class="sfme-login-error">' . esc_html( $label ) . '</div>';
+
+		return $message;
 	}
 
 	// -------------------------------------------------------------------------
@@ -208,6 +240,16 @@ class Login_Button {
 }
 .sfme-local-login a:hover {
 	color: #1d2327;
+}
+
+.sfme-login-error {
+	background: #fcf0f1;
+	border-left: 4px solid #d63638;
+	color: #1d2327;
+	padding: 12px;
+	margin-bottom: 16px;
+	font-size: 13px;
+	line-height: 1.5;
 }
 		';
 	}

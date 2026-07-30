@@ -19,6 +19,7 @@ defined( 'ABSPATH' ) || exit;
 
 use SFME\Plugin;
 use SFME\Auth\OIDC_Client;
+use SFME\Logging\Error_Logger;
 use SFME\Security\Rate_Limiter;
 use SFME\Security\State_Manager;
 use SFME\User\User_Handler;
@@ -376,17 +377,28 @@ class Login_Handler {
 	}
 
 	/**
-	 * Redirect to wp-login.php with an 'sso_error' query parameter.
+	 * Redirect to the login page with an SSO error code.
 	 *
-	 * Passing only an opaque error code (never internal error details) prevents
-	 * information leakage that could assist an attacker.
+	 * Logs the error persistently via Error_Logger and redirects the
+	 * browser to wp-login.php with the error code as a query parameter
+	 * so the login page can display a user-facing message.
 	 *
 	 * @param string $code Machine-readable error code (no spaces).
 	 *
 	 * @return void
 	 */
 	private static function redirect_with_error( string $code ): void {
-		$url = add_query_arg( 'sso_error', rawurlencode( $code ), home_url() );
+		// Log the error persistently for admin review.
+		Error_Logger::log(
+			$code,
+			Error_Logger::get_error_label( $code ),
+			'login_handler'
+		);
+
+		// Redirect to wp-login.php so the error message is visible,
+		// rather than redirecting to the homepage where no feedback
+		// is displayed.
+		$url = add_query_arg( 'sso_error', rawurlencode( $code ), wp_login_url() );
 		wp_safe_redirect( $url );
 		exit;
 	}

@@ -13,6 +13,8 @@ namespace SFME\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
+use SFME\Logging\Error_Logger;
+
 /**
  * Class Settings_Page
  *
@@ -402,6 +404,17 @@ class Settings_Page {
 				$field
 			);
 		}
+
+		// --- Section: Error Log ---
+		add_settings_section(
+			'sfme_section_error_log',
+			__( 'Error Log', 'sso-for-microsoft-entra' ),
+			array( self::class, 'render_section_error_log' ),
+			self::PAGE_SLUG
+		);
+
+		// Handle clear-log action before any output.
+		add_action( 'admin_init', array( self::class, 'handle_clear_log' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -474,6 +487,138 @@ class Settings_Page {
 	 */
 	public static function render_section_rate_limiting(): void {
 		echo '<p>' . esc_html__( 'Control how many SSO login attempts are allowed per IP address within a time window.', 'sso-for-microsoft-entra' ) . '</p>';
+	}
+
+	/**
+	 * Render the Error Log section.
+	 *
+	 * Displays recent SSO error entries in a table and provides a
+	 * "Clear Log" button. The section is rendered outside the main
+	 * settings form so it does not interfere with the Settings API.
+	 *
+	 * @return void
+	 */
+	public static function render_section_error_log(): void {
+		// Render the error log table outside the settings form.
+		// The section is registered via add_settings_section but we
+		// override the default rendering by hooking into the section
+		// callback and closing/reopening the form.
+		?>
+		</td></tr></tbody></table>
+
+		<?php self::render_error_log_table(); ?>
+
+		<table class="form-table" role="presentation"><tbody><tr><td>
+		<?php
+	}
+
+	/**
+	 * Handle the "Clear Log" action.
+	 *
+	 * Verifies the nonce and clears all entries from the error log table.
+	 * Redirects back to the settings page with a success or error message.
+	 *
+	 * @return void
+	 */
+	public static function handle_clear_log(): void {
+		if ( ! isset( $_GET['sfme_clear_log'] ) || ! isset( $_GET['_wpnonce'] ) ) {
+			return;
+		}
+
+		if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), 'sfme_clear_log' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'sso-for-microsoft-entra' ) );
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions.', 'sso-for-microsoft-entra' ) );
+		}
+
+		$result = Error_Logger::clear_logs();
+
+		if ( false === $result ) {
+			add_settings_error(
+				'sfme_settings',
+				'sfme_clear_log_failed',
+				__( 'Failed to clear the error log.', 'sso-for-microsoft-entra' ),
+				'error'
+			);
+		} else {
+			add_settings_error(
+				'sfme_settings',
+				'sfme_clear_log_success',
+				__( 'Error log cleared successfully.', 'sso-for-microsoft-entra' ),
+				'success'
+			);
+		}
+
+		wp_safe_redirect( add_query_arg( 'settings-updated', '1', remove_query_arg( array( 'sfme_clear_log', '_wpnonce' ) ) ) );
+		exit;
+	}
+
+	/**
+	 * Render the error log table HTML.
+	 *
+	 * Displays the most recent 50 log entries in a styled table with
+	 * columns for date, error code, message, IP address, and user agent.
+	 *
+	 * @return void
+	 */
+	private static function render_error_log_table(): void {
+		$logs      = Error_Logger::get_logs( 50, 0 );
+		$count     = Error_Logger::get_log_count();
+		$clear_url = wp_nonce_url(
+			add_query_arg( 'sfme_clear_log', '1' ),
+			'sfme_clear_log'
+		);
+		?>
+		<div class="sfme-error-log-section">
+			<p>
+				<?php
+				printf(
+					/* translators: %1$d: number of displayed entries, %2$d: total number of entries */
+					esc_html__( 'Showing the most recent %1$d of %2$d total SSO error entries.', 'sso-for-microsoft-entra' ),
+					esc_html( min( 50, $count ) ),
+					esc_html( $count )
+				);
+				?>
+			</p>
+
+			<?php if ( ! empty( $logs ) ) : ?>
+				<table class="wp-list-table widefat fixed striped">
+					<thead>
+						<tr>
+							<th scope="col" style="width:160px;"><?php esc_html_e( 'Date', 'sso-for-microsoft-entra' ); ?></th>
+							<th scope="col" style="width:140px;"><?php esc_html_e( 'Error Code', 'sso-for-microsoft-entra' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'Message', 'sso-for-microsoft-entra' ); ?></th>
+							<th scope="col" style="width:130px;"><?php esc_html_e( 'IP Address', 'sso-for-microsoft-entra' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'User Agent', 'sso-for-microsoft-entra' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $logs as $entry ) : ?>
+							<tr>
+								<td><?php echo esc_html( $entry->created_at ); ?></td>
+								<td><code><?php echo esc_html( $entry->error_code ); ?></code></td>
+								<td><?php echo esc_html( $entry->error_message ); ?></td>
+								<td><?php echo esc_html( $entry->ip_address ); ?></td>
+								<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?php echo esc_attr( $entry->user_agent ); ?>">
+									<?php echo esc_html( $entry->user_agent ); ?>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+
+				<p>
+					<a href="<?php echo esc_url( $clear_url ); ?>" class="button button-secondary" onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to clear all error log entries?', 'sso-for-microsoft-entra' ) ); ?>');">
+						<?php esc_html_e( 'Clear Log', 'sso-for-microsoft-entra' ); ?>
+					</a>
+				</p>
+			<?php else : ?>
+				<p><em><?php esc_html_e( 'No SSO errors have been logged yet.', 'sso-for-microsoft-entra' ); ?></em></p>
+			<?php endif; ?>
+		</div>
+		<?php
 	}
 
 	// -------------------------------------------------------------------------

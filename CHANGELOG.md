@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.7.0 (2026-07-29)
+
+### Added
+
+- Persistent SSO error log — all authentication failures are now stored in a dedicated database table (`sfme_error_log`) for admin review.
+- Error Log section on the settings page — displays recent SSO errors with date, error code, message, IP address, and user agent. Includes a "Clear Log" button.
+- User-facing error messages on the login page — SSO errors are now displayed as a styled notice above the login form instead of silently redirecting to the homepage with a query parameter.
+- Database upgrade step v2 — creates the `sfme_error_log` table automatically on the next admin page load.
+
+### Fixed
+
+- `uninstall.php` now drops the `sfme_error_log` table on plugin deletion.
+
 ## 2.6.1 (2026-06-25)
 
 ### Fixed

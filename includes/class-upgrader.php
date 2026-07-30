@@ -27,7 +27,7 @@ class Upgrader {
 	 *
 	 * @var int
 	 */
-	const DB_VERSION = 1;
+	const DB_VERSION = 2;
 
 	/**
 	 * Option name that stores the current database version.
@@ -74,6 +74,7 @@ class Upgrader {
 	private static function do_upgrade( int $from_version ): void {
 		$upgrades = array(
 			1 => array( __CLASS__, 'upgrade_v1' ),
+			2 => array( __CLASS__, 'upgrade_v2' ),
 		);
 
 		foreach ( $upgrades as $version => $callback ) {
@@ -113,5 +114,17 @@ class Upgrader {
 				delete_option( $old_key );
 			}
 		}
+	}
+
+	/**
+	 * Upgrade step 2 — Create the error log table.
+	 *
+	 * Installs the sfme_error_log table used by Error_Logger for
+	 * persistent SSO error logging.
+	 *
+	 * @return void
+	 */
+	private static function upgrade_v2(): void {
+		\SFME\Logging\Error_Logger::install_table();
 	}
 }

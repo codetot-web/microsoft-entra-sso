@@ -405,14 +405,6 @@ class Settings_Page {
 			);
 		}
 
-		// --- Section: Error Log ---
-		add_settings_section(
-			'sfme_section_error_log',
-			__( 'Error Log', 'sso-for-microsoft-entra' ),
-			array( self::class, 'render_section_error_log' ),
-			self::PAGE_SLUG
-		);
-
 		// Handle clear-log action before any output.
 		add_action( 'admin_init', array( self::class, 'handle_clear_log' ) );
 	}
@@ -513,6 +505,18 @@ class Settings_Page {
 	}
 
 	/**
+	 * Render the Logs tab content — error log table without form wrapping.
+	 *
+	 * Called from the Logs tab in admin-settings.php. Renders only the
+	 * error log table and the Clear Log button, without any settings form.
+	 *
+	 * @return void
+	 */
+	public static function render_logs_tab(): void {
+		self::render_error_log_table();
+	}
+
+	/**
 	 * Handle the "Clear Log" action.
 	 *
 	 * Verifies the nonce and clears all entries from the error log table.
@@ -564,7 +568,7 @@ class Settings_Page {
 	 * @return void
 	 */
 	private static function render_error_log_table(): void {
-		$logs      = Error_Logger::get_logs( 50, 0 );
+		$logs      = Error_Logger::get_logs( 10, 0 );
 		$count     = Error_Logger::get_log_count();
 		$clear_url = wp_nonce_url(
 			add_query_arg( 'sfme_clear_log', '1' ),
@@ -732,7 +736,11 @@ class Settings_Page {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Output the settings page HTML.
+	 * Render the settings page with tabbed navigation.
+	 *
+	 * Two tabs:
+	 *   - Settings (default) — the existing settings form via Settings API.
+	 *   - Logs               — latest SSO error log entries.
 	 *
 	 * @return void
 	 */
@@ -741,10 +749,39 @@ class Settings_Page {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'sso-for-microsoft-entra' ) );
 		}
 
+		$current_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'settings'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
 		$template = SFME_PLUGIN_DIR . 'templates/admin-settings.php';
 
 		if ( file_exists( $template ) ) {
 			include $template;
 		}
+	}
+
+	/**
+	 * Render tab navigation for the settings page.
+	 *
+	 * @param string $current The active tab slug.
+	 * @return void
+	 */
+	public static function render_tabs( string $current ): void {
+		$tabs = array(
+			'settings' => __( 'Settings', 'sso-for-microsoft-entra' ),
+			'logs'     => __( 'Logs', 'sso-for-microsoft-entra' ),
+		);
+
+		$page = self::PAGE_SLUG;
+
+		echo '<nav class="nav-tab-wrapper">';
+		foreach ( $tabs as $tab => $label ) {
+			$class = ( $tab === $current ) ? 'nav-tab nav-tab-active' : 'nav-tab';
+			printf(
+				'<a href="%s" class="%s">%s</a>',
+				esc_url( add_query_arg( 'tab', $tab, admin_url( 'options-general.php?page=' . $page ) ) ),
+				esc_attr( $class ),
+				esc_html( $label )
+			);
+		}
+		echo '</nav>';
 	}
 }

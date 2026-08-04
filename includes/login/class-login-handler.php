@@ -201,9 +201,19 @@ class Login_Handler {
 			// Log the internal error without exposing details to the browser.
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled
-				error_log( 'SFME OIDC callback error: ' . $claims->get_error_message() );
+				error_log( 'SFME OIDC callback error: ' . $claims->get_error_code() . ' — ' . $claims->get_error_message() );
 			}
-			self::redirect_with_error( 'oidc_callback_failed' );
+
+			// Surface the real error code so the admin error log shows the actual
+			// root cause (e.g. jwt_expired, state_invalid) instead of the generic
+			// 'oidc_callback_failed' catch-all. Error_Logger::get_error_label()
+			// already maps these codes to specific human-readable messages.
+			$error_code = $claims->get_error_code();
+			if ( '' === $error_code ) {
+				$error_code = 'oidc_callback_failed';
+			}
+
+			self::redirect_with_error( $error_code );
 			return;
 		}
 
